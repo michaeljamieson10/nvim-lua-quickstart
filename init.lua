@@ -89,7 +89,6 @@ P.S. You can delete this when you're done too. It's your config now! :)
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
-
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = false
 
@@ -97,14 +96,19 @@ vim.g.have_nerd_font = false
 -- See `:help vim.opt`
 -- NOTE: You can change these options as you wish!
 --  For more options, you can see `:help option-list`
-
+vim.g.netrw_bufsettings = 'nu'
+vim.g.netrw_browse_split = 3
+vim.g.netrw_keepdir = 0
 -- Make line numbers default
 vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
--- vim.opt.relativenumber = true
+vim.opt.relativenumber = true
 
--- Enable mouse mode, can be useful for resizing splits for example!
+vim.cmd [[
+    highlight LineNr guifg=#888888 " Bright gray for relative line numbers
+    highlight CursorLineNr guifg=#ffffff " Bright white for the current line number
+]] -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
 
 -- Don't show the mode, since it's already in the status line
@@ -148,6 +152,7 @@ vim.opt.splitbelow = true
 vim.opt.list = true
 vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 
+vim.g.skip_ts_context_commentstring_module = true
 -- Preview substitutions live, as you type!
 vim.opt.inccommand = 'split'
 
@@ -189,7 +194,9 @@ vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left wind
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
-
+vim.keymap.set('n', '<leader>jc', function()
+  vim.cmd 'split | terminal curl -s https://jsonplaceholder.typicode.com/posts/1'
+end, { desc = 'Fetch JSON Placeholder Post' })
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -230,6 +237,38 @@ vim.opt.rtp:prepend(lazypath)
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+  {
+    'tpope/vim-obsession', -- Session management plugin
+    lazy = false, -- Load the plugin on startup
+  },
+
+  {
+    'windwp/nvim-ts-autotag',
+    dependencies = { 'nvim-treesitter/nvim-treesitter' },
+    config = function()
+      require('nvim-ts-autotag').setup()
+    end,
+  },
+  {
+    'JoosepAlviste/nvim-ts-context-commentstring',
+    dependencies = { 'nvim-treesitter/nvim-treesitter' },
+    config = function()
+      require('nvim-treesitter.configs').setup {
+        context_commentstring = {
+          enable = true,
+          enable_autocmd = false,
+        },
+      }
+    end,
+  },
+  {
+    'numToStr/Comment.nvim',
+    config = function()
+      require('Comment').setup {
+        pre_hook = require('ts_context_commentstring.integrations.comment_nvim').create_pre_hook(),
+      }
+    end,
+  },
 
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
@@ -357,6 +396,34 @@ require('lazy').setup({
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
     },
     config = function()
+      local lspconfig = require 'lspconfig'
+
+      lspconfig.ts_ls.setup {
+        root_dir = lspconfig.util.root_pattern(
+          'tsconfig.json', -- Detect local tsconfig.json
+          'package.json',
+          '.git'
+        ),
+        on_attach = function(client, bufnr)
+          -- Disable formatting if using Prettier
+          client.server_capabilities.documentFormattingProvider = false
+
+          -- Keybindings for navigation
+          local opts = { noremap = true, silent = true }
+          vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>', opts)
+          vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
+          vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
+          vim.api.nvim_buf_set_keymap(bufnr, 'n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
+        end,
+        capabilities = require('cmp_nvim_lsp').default_capabilities(),
+        settings = {
+          typescript = {
+            preferences = {
+              importModuleSpecifier = 'non-relative',
+            },
+          },
+        },
+      }
       -- Telescope is a fuzzy finder that comes with a lot of different things that
       -- it can fuzzy find! It's more than just a "file finder", it can search
       -- many different aspects of Neovim, your workspace, LSP, and more!
@@ -625,8 +692,7 @@ require('lazy').setup({
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
-        -- ts_ls = {},
-        --
+        ts_ls = {},
 
         lua_ls = {
           -- cmd = {...},
@@ -845,13 +911,22 @@ require('lazy').setup({
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+      -- vim.cmd.colorscheme 'tokyonight-night'
 
       -- You can configure highlights by doing something like:
-      vim.cmd.hi 'Comment gui=none'
+      -- vim.cmd.hi 'Comment gui=none'
     end,
   },
-
+  {
+    'ellisonleao/gruvbox.nvim',
+    priority = 1000, -- Load before other plugins
+    config = function()
+      -- Set the contrast to "hard"
+      vim.g.gruvbox_contrast_dark = 'hard' -- For dark mode
+      vim.opt.background = 'dark' -- Ensure dark mode is used
+      vim.cmd.colorscheme 'gruvbox' -- Apply the Gruvbox colorscheme
+    end,
+  },
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
 
