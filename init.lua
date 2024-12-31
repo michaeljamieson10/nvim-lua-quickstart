@@ -269,7 +269,27 @@ require('lazy').setup({
       }
     end,
   },
-
+  {
+    'kawre/leetcode.nvim',
+    build = function()
+      local ok, ts_install = pcall(vim.cmd, 'TSInstall html')
+      if not ok then
+        print 'Failed to install Treesitter parser for HTML'
+      end
+    end,
+    dependencies = {
+      'nvim-telescope/telescope.nvim',
+      'nvim-lua/plenary.nvim',
+      'MunifTanjim/nui.nvim',
+    },
+    opts = {
+      lang = 'python', -- Change to your preferred language
+      use_treesitter = true,
+    },
+    config = function(_, opts)
+      require('leetcode').setup(opts)
+    end,
+  },
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
   -- keys can be used to configure plugin behavior/loading/etc.
@@ -684,7 +704,7 @@ require('lazy').setup({
       local servers = {
         -- clangd = {},
         -- gopls = {},
-        -- pyright = {},
+        pyright = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
@@ -776,7 +796,7 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
+        python = { 'isort', 'black' },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
