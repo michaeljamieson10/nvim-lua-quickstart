@@ -96,9 +96,6 @@ vim.g.have_nerd_font = false
 -- See `:help vim.opt`
 -- NOTE: You can change these options as you wish!
 --  For more options, you can see `:help option-list`
-vim.g.netrw_bufsettings = 'nu'
-vim.g.netrw_browse_split = 3
-vim.g.netrw_keepdir = 0
 -- Make line numbers default
 vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
@@ -244,6 +241,30 @@ require('lazy').setup({
     dependencies = { 'nvim-treesitter/nvim-treesitter' },
     config = function()
       require('nvim-ts-autotag').setup()
+    end,
+  },
+  {
+    'tpope/vim-fugitive',
+    cmd = { 'Git', 'G', 'Git blame' }, -- Lazy load for Git commands
+    keys = {
+      { '<leader>gb', ':Git blame<CR>', desc = 'Git Blame' },
+    },
+  },
+  {
+    'stevearc/oil.nvim', -- Plugin repo
+    cmd = { 'Oil' }, -- Lazy load for Oil commands
+    keys = {
+      { '<leader>o', ':Oil<CR>', desc = 'Open Oil File Explorer' }, -- Key mapping
+
+      { '-', '<CMD>Oil<CR>', desc = 'Open parent directory' }, -- Key mapping
+    },
+    config = function()
+      require('oil').setup {
+        -- Optional: Customize oil.nvim behavior here
+        view_options = {
+          show_hidden = true, -- Show hidden files
+        },
+      }
     end,
   },
   {
