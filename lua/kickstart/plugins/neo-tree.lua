@@ -16,9 +16,14 @@ return {
   },
   opts = {
     filesystem = {
+      filtered_items = {
+        visible = true, -- Show hidden files by default
+        hide_dotfiles = false, -- Do not hide files starting with a dot (e.g., .git, .env)
+        hide_gitignored = false, -- Do not hide git-ignored files
+      },
       window = {
         mappings = {
-          ['\\'] = 'close_window',
+          ['<leader>e'] = 'toggle_hidden', -- Optional: Keybinding to toggle hidden files on/off
         },
       },
     },
