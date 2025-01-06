@@ -88,8 +88,12 @@ P.S. You can delete this when you're done too. It's your config now! :)
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
-vim.env.CC = 'C:\\Users\\mjamieson\\AppData\\Local\\zig\\zig.exe'
-vim.env.CXX = 'C:\\Users\\mjamieson\\AppData\\Local\\zig\\zig.exe'
+
+local current_user = os.getenv 'USERNAME' -- Check environment variables for the current user
+if current_user == 'mjamieson' then
+  vim.env.CC = 'C:\\Users\\mjamieson\\AppData\\Local\\zig\\zig.exe'
+  vim.env.CXX = 'C:\\Users\\mjamieson\\AppData\\Local\\zig\\zig.exe'
+end
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 -- Set to true if you have a Nerd Font installed and selected in the terminal
