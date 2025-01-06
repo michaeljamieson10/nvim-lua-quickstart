@@ -88,8 +88,12 @@ P.S. You can delete this when you're done too. It's your config now! :)
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
-vim.env.CC = 'C:\\Users\\mjamieson\\AppData\\Local\\zig\\zig.exe'
-vim.env.CXX = 'C:\\Users\\mjamieson\\AppData\\Local\\zig\\zig.exe'
+
+local current_user = os.getenv 'USERNAME' -- Check environment variables for the current user
+if current_user == 'mjamieson' then
+  vim.env.CC = 'C:\\Users\\mjamieson\\AppData\\Local\\zig\\zig.exe'
+  vim.env.CXX = 'C:\\Users\\mjamieson\\AppData\\Local\\zig\\zig.exe'
+end
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 -- Set to true if you have a Nerd Font installed and selected in the terminal
@@ -191,6 +195,10 @@ vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left wind
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+
+vim.keymap.set('n', '<leader>yd', function()
+  vim.fn.setreg('+', vim.fn.expand '%:p:h')
+end, { desc = 'Yank file’s directory to clipboard' })
 vim.keymap.set('n', '<leader>jc', function()
   vim.cmd 'split | terminal curl -s https://jsonplaceholder.typicode.com/posts/1'
 end, { desc = 'Fetch JSON Placeholder Post' })
