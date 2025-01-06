@@ -1,0 +1,290 @@
+
+[%- MODE=csv -%]
+[%- USE Dumper -%]
+[%-
+
+
+USE round2 = format('%0.2f');
+USE round4 = format('%0.4f');
+MACRO mostRecentForm(form_name,tasks,metadata) BLOCK;
+    date = '20000101000000';
+    first_date = '30000101000000';
+    your_metadata = '';
+    FOR sub_form IN tasks.keys.grep(form_name);
+        FOR form IN [0..tasks.$sub_form.max];
+            NEXT IF tasks.$sub_form.$form.endTime == '';
+            temp_date = tasks.$sub_form.$form.endTime.substr(0,19).remove('-').remove('T').remove(':');
+            IF form_name == 'ITF';
+                IF temp_date > date AND tasks.$sub_form.$form.taskVariables.size > 0 AND tasks.$sub_form.$form.taskVariables.subject_id != '';
+                    my_metadata = tasks.$sub_form.$form;
+                    date = temp_date;
+                END;
+                IF temp_date < first_date AND tasks.$sub_form.$form.taskVariables.size > 0 AND tasks.$sub_form.$form.taskVariables.subject_id != '';
+                    your_metadata = tasks.$sub_form.$form;
+                    first_date = temp_date;
+                END;
+            ELSE;
+                IF temp_date > date AND tasks.$sub_form.$form.taskVariables.size > 0;
+                    my_metadata = tasks.$sub_form.$form; 
+                    your_metadata = tasks.$sub_form.$form;
+                    date = temp_date;
+                END;
+            END;
+        END;
+    END;
+    metadata.form_metadata = your_metadata;
+    metadata.form_values = my_metadata.taskVariables;
+END;
+
+hdr =   [
+            'protocol',
+            'site_number',
+            'subject_number',
+            'subject_id',
+            'visit_id',
+            'scan_date',
+            'modality',
+            'ligand',
+            'scan_analyzed',
+            'reason_scan_not_analyzed',
+            'other_specify',
+            'brain_region',
+            'suvr_cerebellum_ventral',
+            'vi_score',
+            'centiloid'
+        ];
+
+prj = Model.project(Model.projectList.search('projectname' = 'C2N_Diagnostics_C2N275').id);
+patients = patient_ids ? prj.search_related_rs('patients',{'patients.id'=>{'-in'=>patient_ids}}) : prj.search_related_rs('patients');
+studies = study_ids ? patients.search_related_rs('studies',{'studies.id'=>{'-in'=>study_ids}}) : patients.search_related_rs('studies');
+series = series_ids ? studies.search_related_rs('series',{'series.id'=>{'-in'=>series_ids}}) : studies.search_related_rs('series');
+images = image_ids ? series.search_related_rs('images',{'images.id'=>{'-in'=>image_ids}}) : series.search_related_rs('images');
+
+the_data = {};
+
+FOR patient IN patients.all;
+    NEXT IF study_ids != '' && patient.search_related_rs('studies', { 'id' = { '-in' = study_ids } }).all == '';
+    task_form_info = patient.tasks_by_timepoint_from_camunda;
+    FOR timepoint IN task_form_info.keys;
+		FOR category IN task_form_info.$timepoint.keys;
+            scanid = task_form_info.$timepoint.$category.id;
+            scan_studies = study_ids ? patient.search_related_rs('studies', { 'me.scan_id' = { '-in' = scanid }, 'me.id' = { '-in' = study_ids } }) :
+                                        patient.search_related_rs('studies', { 'me.scan_id' = { '-in' = scanid } });
+			NEXT IF scan_studies == 0;
+
+            tasks_and_forms = task_form_info.$timepoint.$category.tasks;
+            study_id = task_form_info.$timepoint.$category.study_ids.sort.first;
+            subject_id = patient.patientsname;
+            task_hash = {
+                            sub = { task_name = 'ITF' },
+                            iaq = { task_name = 'Image Analysis QC' },
+                            tqc = { task_name = 'Image QC' },
+                            sna = { task_name = 'Scan Not Acceptable' },
+                            vi_read_1 = { task_name = 'VI Read 1' },
+                            vi_read_2 = { task_name = 'VI Read 2' },
+                            vi_read_3 = { task_name = 'VI Read 3' },
+                        };
+
+            study_desc = scan_studies.first.studydescription;
+            
+            NEXT IF the_data.$subject_id.$study_id.visited == 1;
+            
+            the_data.$subject_id.$study_id.visited = 1; 
+
+            FOR task IN task_hash.keys;
+                mostRecentForm(task_hash.$task.task_name, tasks_and_forms, task_hash.$task);
+                $task = task_hash.$task.form_values;
+            END;
+
+            the_data.$subject_id.$study_id.category = category;
+			#patient.patientsname == '43828722' && Dumper.dump(task_hash.vi_read_1.form_values);
+#            Dumper.dump(task_hash.sub);
+#        patient.patientsname == '43828723' && Dumper.dump(task_hash.sna.form_values);
+            the_data.$subject_id.$study_id.protocol = 'C2N Diagnostics C2N275';
+            the_data.$subject_id.$study_id.site_number = sub.subject_id.substr(0,3);
+            the_data.$subject_id.$study_id.subject_number = sub.subject_id.substr(-5);
+            the_data.$subject_id.$study_id.subject_id = sub.subject_id;
+            the_data.$subject_id.$study_id.visit_id = sub.visit_id;
+            the_data.$subject_id.$study_id.scan_date = sub.scan_date;
+            the_data.$subject_id.$study_id.modality = sub.modality;
+            the_data.$subject_id.$study_id.ligand = task_hash.sub.form_values.ligand;
+            the_data.$subject_id.$study_id.scan_analyzed = task_hash.sna.form_values == '' ? 'Yes' : 'No';
+            the_data.$subject_id.$study_id.reason_scan_not_analyzed = task_hash.sna.form_values.reason_not_analyzed || task_hash.sna.form_values.reason_scan_not_analyzed | upper;
+            the_data.$subject_id.$study_id.other_specify = task_hash.sna.form_values.other_specify;
+            the_data.$subject_id.$study_id.vi_score = task_hash.vi_read_1.form_values.vi_score != task_hash.vi_read_2.form_values.vi_score ? task_hash.vi_read_3.form_values.vi_score : task_hash.vi_read_1.form_values.vi_score;
+            IF the_data.$subject_id.$study_id.scan_analyzed == 'No'; 
+                the_data.$subject_id.$study_id.quant.$analysis_type.${''}.suvr_cerebellum_ventral = '' ;
+                NEXT;
+            END;
+            calced_quants = scan_studies.search_related_rs  (
+                                'datapoints',
+                                {
+                                    'form' = 'quantification_calc_import',
+                                    'active' = 1,
+                                    'type' = 'studies',
+                                }, 
+                                {
+                                    'join' = ['dvalues', 'dvalues'], 
+                                    'order_by' = { '-desc' = 'timestamp' },
+                                }
+                            ).first;
+            IF calced_quants;
+                analysis_type = calced_quants.value('analysis_type');
+                FOR dval IN calced_quants.dvalues;
+				   # roi = dval.keyname | remove('^suvr_cbv_|^suv_') | upper; 
+				    roi = dval.keyname | remove('^suvr_cbv_') | upper; 
+                    the_data.$subject_id.$study_id.quant.$analysis_type.${roi}.suvr_cerebellum_ventral = dval.value != '' ? round2(dval.value) : '';
+                END;
+            END;
+
+            centiloid = scan_studies.search_related_rs  (
+                        'datapoints',
+                        {
+                            'form' = 'composite_centiloid',
+                            'active' = 1,
+                            'type' = 'studies',
+                            'dvalues.keyname' = 'subject_id',
+                            'dvalues.value' = subject_id,
+                        }, 
+                        {
+                            'join' = ['dvalues', 'dvalues'], 
+                            'order_by' = { '-desc' = 'timestamp' },
+                        }
+                    ).first;
+            IF centiloid;
+                the_data.$subject_id.$study_id.centiloid = centiloid != '' ? round4(centiloid.value('centiloid')) : '';
+            END;
+              
+        END;
+    END;
+END;
+# Dumper.dump(the_data);
+
+CSV.add(hdr);
+CSV.end();
+ordered_hdr = [
+    "ENTORHINAL_R",
+    "ENTORHINAL_L",
+    "FL_MID_FR_G_L",
+    "FL_MID_FR_G_R",
+    "FL_PRECEN_G_L",
+    "FL_PRECEN_G_R",
+    "FL_STRAI_G_L",
+    "FL_STRAI_G_R",
+    "FL_OFC_AOG_L",
+    "FL_OFC_AOG_R",
+    "FL_INF_FR_G_L",
+    "FL_INF_FR_G_R",
+    "FL_SUP_FR_G_L",
+    "FL_SUP_FR_G_R",
+    "FL_OFC_MOG_L",
+    "FL_OFC_MOG_R",
+    "FL_OFC_LOG_L",
+    "FL_OFC_LOG_R",
+    "FL_OFC_POG_L",
+    "FL_OFC_POG_R",
+    "SUBGEN_ANTCING_L",
+    "SUBGEN_ANTCING_R",
+    "SUBCALL_AREA_L",
+    "SUBCALL_AREA_R",
+    "PRESUBGEN_ANTCING_L",
+    "PRESUBGEN_ANTCING_R",
+    "HIPPOCAMPUS_R",
+    "HIPPOCAMPUS_L",
+    "ANT_TL_MED_R",
+    "ANT_TL_MED_L",
+    "ANT_TL_INF_LAT_R",
+    "ANT_TL_INF_LAT_L",
+    "G_PARAH_AMB_R",
+    "G_PARAH_AMB_L",
+    "G_SUP_TEMP_POST_R",
+    "G_SUP_TEMP_POST_L",
+    "G_TEM_MIDIN_R",
+    "G_TEM_MIDIN_L",
+    "G_FUS_R",
+    "G_FUS_L",
+    "POST_TL_L",
+    "POST_TL_R",
+    "G_SUP_TEMP_ANT_L",
+    "G_SUP_TEMP_ANT_R",
+    "PL_POSTCE_G_L",
+    "PL_POSTCE_G_R",
+    "PL_SUP_PA_G_L",
+    "PL_SUP_PA_G_R",
+    "PL_REST_L",
+    "PL_REST_R",
+    "OL_REST_LAT_L",
+    "OL_REST_LAT_R",
+    "OL_LING_G_L",
+    "OL_LING_G_R",
+    "OL_CUNEUS_L",
+    "OL_CUNEUS_R",
+    "CAUDATENUCL_L",
+    "CAUDATENUCL_R",
+    "PUTAMEN_L",
+    "PUTAMEN_R",
+    "THALAMUS_L",
+    "THALAMUS_R",
+    "G_CING_ANT_L",
+    "G_CING_ANT_R",
+    "G_CING_POST_L",
+    "G_CING_POST_R",
+    #"SUBCORTICAL_WM",
+    #"PONS",
+    "CEREBELLAR_WM",
+    "CEREBELLUM_DORSAL_R",
+    "CEREBELLUM_DORSAL_L",
+    "CEREBELLUM_VENTRAL",
+    "AMYGDALA_R",
+    "AMYGDALA_L",
+    "NUCLACCUMB_L",
+    "NUCLACCUMB_R",
+    "PALLIDUM_L",
+    "PALLIDUM_R",
+    "CORP_CALLOSUM",
+    "INSULA_L",
+    "INSULA_R",
+    "BRAINSTEM",
+    #"MIDBRAIN",
+    "FL_OFC_L",
+    "FL_OFC_R",
+    "PL_L",
+    "PL_R",
+    "TL_SUPLAT_L",
+    "TL_SUPLAT_R",
+    "TL_INFLAT_L",
+    "TL_INFLAT_R",
+    "CING_ANT_L",
+    "CING_ANT_R",
+    "COMPOSITE_SUMMARY",
+];
+#Dumper.dump(the_data);
+
+FOR subject IN the_data.keys;
+    FOR study_id IN the_data.$subject.keys;
+        FOR analysis_type IN the_data.$subject.$study_id.quant.keys;
+            FOR roi IN ordered_hdr;
+                FOR col IN hdr;
+                    val = the_data.$subject.$study_id.$col;
+#        subject == '43828723' && Dumper.dump(col _ ' <==> ' _ val);
+                    IF val == '';
+                        IF col == 'brain_region';
+                            val = roi; 
+                        ELSIF col == 'centiloid';
+                            val = the_data.$subject.$study_id.centiloid;
+                        ELSIF col == 'suvr_cerebellum_ventral';
+                            val = the_data.$subject.$study_id.quant.$analysis_type.$roi.suvr_cerebellum_ventral;
+                        END;
+                    END;
+
+                    CSV.add(val);
+                    END;
+                CSV.end();
+            END;
+        END;
+	END;
+END;
+CSV.print();
+-%]
+
+
