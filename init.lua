@@ -195,6 +195,10 @@ vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left wind
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+
+vim.keymap.set('n', '<leader>yd', function()
+  vim.fn.setreg('+', vim.fn.expand '%:p:h')
+end, { desc = 'Yank file’s directory to clipboard' })
 vim.keymap.set('n', '<leader>jc', function()
   vim.cmd 'split | terminal curl -s https://jsonplaceholder.typicode.com/posts/1'
 end, { desc = 'Fetch JSON Placeholder Post' })
