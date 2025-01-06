@@ -24,5 +24,4 @@ return {
             highlight link ttFunction Function
             highlight link ttVariable Identifier
         ]],
-  M.setup(),
 }
