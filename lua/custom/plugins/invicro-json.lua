@@ -25,6 +25,8 @@ function M.setup()
     pattern = 'Z:/Data Management/*.json',
     callback = function()
       vim.bo.filetype = 'javascript'
+      vim.cmd [[setlocal syntax=off]]
+      vim.diagnostic.enable(false) -- Disables diagnostics for the current buffer
     end,
   })
 end
