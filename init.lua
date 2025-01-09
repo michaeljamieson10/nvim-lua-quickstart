@@ -291,6 +291,32 @@ require('lazy').setup({
     end,
   },
   {
+    'ruifm/gitlinker.nvim',
+    dependencies = 'nvim-lua/plenary.nvim',
+    config = function()
+      require('gitlinker').setup {
+        opts = {
+          add_current_line = true, -- Include the current line in the link
+          action_callback = function(url)
+            vim.fn.setreg('+', url) -- Copy the URL to the system clipboard (register '+')
+            print('Copied URL to clipboard: ' .. url) -- Notify the user
+          end,
+          print_url = true, -- Print the URL in the terminal as well
+        },
+      }
+
+      -- Keybinding to copy URL for the current file/line
+      vim.keymap.set(
+        'n', -- Normal mode
+        '<leader>gl', -- Keybinding: <leader>gl
+        function()
+          require('gitlinker').get_buf_range_url 'n'
+        end,
+        { noremap = true, silent = true, desc = 'GitLinker: Copy repo link for current file/line' }
+      )
+    end,
+  },
+  {
     'pwntester/octo.nvim',
     dependencies = {
       'nvim-lua/plenary.nvim',
