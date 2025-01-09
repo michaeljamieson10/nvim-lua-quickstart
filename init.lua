@@ -291,6 +291,16 @@ require('lazy').setup({
     end,
   },
   {
+    'pwntester/octo.nvim',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'nvim-telescope/telescope.nvim',
+    },
+    config = function()
+      require('octo').setup()
+    end,
+  },
+  {
     'numToStr/Comment.nvim',
     config = function()
       require('Comment').setup {
@@ -498,12 +508,20 @@ require('lazy').setup({
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
         --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-        --   },
-        -- },
-        -- pickers = {}
+        defaults = {
+          -- mappings = {
+          --   i = { ['<c-enter>'] = 'to_fuzzy_refine' },
+          -- },
+          --
+          file_ignore_patterns = { 'git', 'node_modules' }, -- Keep ignoring unnecessary files
+          hidden = true, -- Show hidden files
+        },
+        pickers = {
+          find_files = {
+
+            hidden = true, -- Ensure find_files includes hidden files
+          },
+        },
         extensions = {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
