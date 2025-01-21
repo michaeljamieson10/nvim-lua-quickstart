@@ -185,6 +185,12 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 -- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
 -- vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
 -- vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
+-- Set leader key (if not already set)
+-- Resize buffers using leader key
+vim.keymap.set('n', '<leader>k', ':resize +15<CR>', { noremap = true, silent = true }) -- Increase height
+vim.keymap.set('n', '<leader>j', ':resize -15<CR>', { noremap = true, silent = true }) -- Decrease height
+vim.keymap.set('n', '<leader>h', ':vertical resize -15<CR>', { noremap = true, silent = true }) -- Decrease width
+vim.keymap.set('n', '<leader>l', ':vertical resize +15<CR>', { noremap = true, silent = true }) -- Increase width
 
 -- Keybinds to make split navigation easier.
 --  Use CTRL+<hjkl> to switch between windows
@@ -482,6 +488,9 @@ require('lazy').setup({
     config = function()
       local lspconfig = require 'lspconfig'
 
+      local util = require 'lspconfig.util'
+
+      -- Configure Deno Language Server
       lspconfig.ts_ls.setup {
         root_dir = lspconfig.util.root_pattern(
           'tsconfig.json', -- Detect local tsconfig.json
@@ -508,6 +517,23 @@ require('lazy').setup({
           },
         },
       }
+      lspconfig.denols.setup {
+        root_dir = util.root_pattern 'deno.json', -- Attach only for Deno projects
+        single_file_support = false,
+        init_options = {
+          lint = true,
+          unstable = true, -- Enable unstable Deno APIs if needed
+        },
+        on_attach = function(client, bufnr)
+          print 'Deno LSP attached'
+          local opts = { noremap = true, silent = true }
+          vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>', opts)
+          vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
+          vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
+          vim.api.nvim_buf_set_keymap(bufnr, 'n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
+        end,
+      }
+
       -- Telescope is a fuzzy finder that comes with a lot of different things that
       -- it can fuzzy find! It's more than just a "file finder", it can search
       -- many different aspects of Neovim, your workspace, LSP, and more!
