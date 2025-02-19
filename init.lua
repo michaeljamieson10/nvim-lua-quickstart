@@ -292,6 +292,9 @@ require('lazy').setup({
       { '<leader>dc', ':DiffviewClose<CR>', desc = 'Close Diffview' },
       { '<leader>df', ':DiffviewToggleFiles<CR>', desc = 'Toggle Diffview Files' },
       { '<leader>dq', ':DiffviewFocusFiles<CR>', desc = 'Focus Diffview Files' },
+      { '<leader>dp', ':DiffviewOpen HEAD^<CR>', desc = 'Diff Previous Commit' },
+      { '<leader>dv', ':DiffviewOpen<CR>', desc = 'Open Diffview (Working Directory Changes)' },
+      { '<leader>db', ':DiffviewOpen origin/development...HEAD<CR>', desc = 'Diff Branch vs development' }, -- Diff full branch
     },
     config = function()
       require('diffview').setup {
