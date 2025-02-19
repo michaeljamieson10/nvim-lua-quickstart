@@ -284,6 +284,23 @@ require('lazy').setup({
     end,
   },
   {
+    'sindrets/diffview.nvim',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    cmd = { 'DiffviewOpen', 'DiffviewClose', 'DiffviewToggleFiles', 'DiffviewFocusFiles' }, -- Lazy load commands
+    keys = {
+      { '<leader>dv', ':DiffviewOpen<CR>', desc = 'Open Diffview' },
+      { '<leader>dc', ':DiffviewClose<CR>', desc = 'Close Diffview' },
+      { '<leader>df', ':DiffviewToggleFiles<CR>', desc = 'Toggle Diffview Files' },
+      { '<leader>dq', ':DiffviewFocusFiles<CR>', desc = 'Focus Diffview Files' },
+    },
+    config = function()
+      require('diffview').setup {
+        enhanced_diff_hl = true, -- Enable better diff highlighting
+        use_icons = true, -- Use icons if available
+      }
+    end,
+  },
+  {
     'JoosepAlviste/nvim-ts-context-commentstring',
     dependencies = { 'nvim-treesitter/nvim-treesitter' },
     config = function()
