@@ -23,9 +23,6 @@
         "email": "michaeljamieson10@gmail.com"
       }
     ],
-    "links": {
-      "repository": "https://github.com/tree-sitter/tree-sitter-tt2"
-    }
   },
   "bindings": {
     "c": true,

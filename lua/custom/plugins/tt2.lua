@@ -1,66 +1,29 @@
-local M = {}
-
-function M.setup()
-  local ls = require 'luasnip'
-  ls.add_snippets('tt2', {
-    ls.parser.parse_snippet(
-      'if',
-      [[
-IF ${1:condition};
-    ${0}
-END;
-]]
-    ),
-    ls.parser.parse_snippet(
-      'foreach',
-      [[
-FOR ${1:item} IN ${2:list};
-    ${0}
-END;
-]]
-    ),
-    ls.parser.parse_snippet(
-      'block',
-      [[
-BLOCK ${1:block_name};
-    ${0}
-END;
-]]
-    ),
-  })
-end
-
+-- This configures your local Treesitter parser for tt2
 return {
-  -- Filetype detection for .tt files
-  vim.filetype.add {
-    extension = {
-      tt = 'tt2', -- Associate .tt files with tt2 filetype
-    },
+  'nvim-treesitter/nvim-treesitter',
+  opts = function(_, opts)
+    local parser_config = require('nvim-treesitter.parsers').get_parser_configs()
+    parser_config.tt2 = {
+      install_info = {
+    url = vim.fn.stdpath('config') .. '/lua/custom/tree-sitter-tt2', -- local path, NOT git url
+    files = { 'src/parser.c' },
+    generate_requires_npm = false, -- 🛑 important
+    requires_generate_from_grammar = false, -- 🛑 important
+    branch = 'main', -- dummy, needed by treesitter
   },
-
-  -- Syntax highlighting rules
-  vim.cmd [[
-    syntax keyword ttKeyword FOR IN IF ELSE ELSIF UNLESS END BLOCK INCLUDE PROCESS WRAPPER
-    syntax match ttVariable /\$[a-zA-Z_][a-zA-Z0-9_]*/
-
-    highlight link ttKeyword Keyword
-    highlight link ttFunction Function
-    highlight link ttVariable Identifier
-  ]],
-
-  -- Indentation rules
-  vim.api.nvim_create_autocmd('FileType', {
-    pattern = 'tt2',
-    callback = function()
-      vim.opt_local.expandtab = true -- Use spaces instead of tabs
-      vim.opt_local.shiftwidth = 4 -- Indentation width
-      vim.opt_local.tabstop = 4 -- Tab width
-
-      -- Indent after FOR and IF, unindent after END
-      vim.opt_local.smartindent = true
-    end,
-  }),
-
-  -- Snippet setup
-  M.setup(),
+  filetype = 'tt2',
 }
+
+    vim.filetype.add {
+      extension = {
+        tt = 'tt2',
+      },
+    }
+
+    -- Ensure tt2 gets installed if you use :TSInstall
+    if type(opts.ensure_installed) == 'table' then
+      vim.list_extend(opts.ensure_installed, { 'tt2' })
+    end
+  end,
+}
+
