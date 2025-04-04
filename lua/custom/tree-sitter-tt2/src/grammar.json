@@ -30,6 +30,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "template_tag"
+        },
+        {
+          "type": "SYMBOL",
           "name": "other_text"
         }
       ]
@@ -166,9 +170,34 @@
       "type": "PATTERN",
       "value": "[a-zA-Z_][a-zA-Z0-9_]*"
     },
+    "template_tag": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "[%-"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "expression"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": "-%]"
+        }
+      ]
+    },
     "other_text": {
       "type": "PATTERN",
-      "value": "[^$IFFORBLOCKEND]+"
+      "value": "[^\\[\\]]+"
     }
   },
   "extras": [
