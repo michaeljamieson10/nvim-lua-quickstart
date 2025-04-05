@@ -159,17 +159,25 @@ module.exports = grammar({
       repeat(seq('.', $.identifier))
     )),
 
-    map: $ => seq(
-      '{',
-      optional(commaSep1(seq($.string, '=', $.expression))),
-      '}'
-    ),
+
     array: $ => seq(
       '[',
-      commaSep1(choice($.map, $.expression)),
+      optional(commaSep1($.expression)),
+      optional(','),
       ']'
     ),
- 
+
+    map: $ => seq(
+      '{',
+      optional(commaSep1(seq($.key, '=', $.expression))),
+      optional(','),
+      '}'
+    ),
+
+key: $ => choice(
+  $.identifier,
+  $.string
+),
     variable: $ => /\$[a-zA-Z_][a-zA-Z0-9_]*/,
 
     identifier: $ => /[a-zA-Z_][a-zA-Z0-9_]*/,
@@ -183,7 +191,6 @@ module.exports = grammar({
   }
 });
 
-// helper for comma separated items
 function commaSep1(rule) {
   return seq(rule, repeat(seq(',', rule)));
 }

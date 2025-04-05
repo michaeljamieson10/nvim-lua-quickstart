@@ -20,14 +20,10 @@
     "fields": {},
     "children": {
       "multiple": true,
-      "required": true,
+      "required": false,
       "types": [
         {
           "type": "expression",
-          "named": true
-        },
-        {
-          "type": "map",
           "named": true
         }
       ]
@@ -617,6 +613,25 @@
     }
   },
   {
+    "type": "key",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "string",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "macro",
     "named": true,
     "fields": {},
@@ -648,7 +663,7 @@
           "named": true
         },
         {
-          "type": "string",
+          "type": "key",
           "named": true
         }
       ]
