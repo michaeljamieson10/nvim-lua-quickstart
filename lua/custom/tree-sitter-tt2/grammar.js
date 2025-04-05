@@ -3,7 +3,6 @@ module.exports = grammar({
 
   extras: $ => [
     /\s/,
-    $.comment,
   ],
 
   conflicts: $ => [
@@ -17,6 +16,7 @@ module.exports = grammar({
     [$.case_clause],
     [$.field_access, $.variable],
     [$.expression, $.array],
+    [$.expression, $.map],
     [$.if_statement, $.elsif_clause],
     [$.if_statement, $.else_clause],
 [$.elsif_clause, $.else_clause],
@@ -51,15 +51,14 @@ module.exports = grammar({
       $.text,
     ),
 
-    comment: $ => token(seq('#', /.*/)),
+    comment: $ => seq(
+      '[%', optional(choice('-', '+', '=', '~')), '#', /.*/, '%]'
+    ),
 
     text: $ => /[^\[%]+/,
 
     template_tag: $ => seq(
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      optional($.expression),
-      '%]'
+      '[%', optional(choice('-', '+', '=', '~')), optional($.expression), '%]'
     ),
 
     block: $ => seq(
@@ -82,24 +81,23 @@ module.exports = grammar({
 
     get: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'GET', $.expression, '%]'),
 
-if_statement: $ => seq(
-  '[%', optional(choice('-', '+', '=', '~')), 'IF', $.expression, '%]',
-  repeat($._node),
-  repeat($.elsif_clause),
-  optional($.else_clause),
-  '[%', optional(choice('-', '+', '=', '~')), 'END', '%]'
-),
+    if_statement: $ => seq(
+      '[%', optional(choice('-', '+', '=', '~')), 'IF', $.expression, '%]',
+      repeat($._node),
+      repeat($.elsif_clause),
+      optional($.else_clause),
+      '[%', optional(choice('-', '+', '=', '~')), 'END', '%]'
+    ),
 
-elsif_clause: $ => seq(
-  '[%', optional(choice('-', '+', '=', '~')), 'ELSIF', $.expression, '%]',
-  repeat($._node)
-),
+    elsif_clause: $ => seq(
+      '[%', optional(choice('-', '+', '=', '~')), 'ELSIF', $.expression, '%]',
+      repeat($._node)
+    ),
 
-else_clause: $ => prec(1, seq(
-  '[%', optional(choice('-', '+', '=', '~')), 'ELSE', '%]',
-  repeat($._node)
-)),
-
+    else_clause: $ => seq(
+      '[%', optional(choice('-', '+', '=', '~')), 'ELSE', '%]',
+      repeat($._node)
+    ),
 
     insert: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'INSERT', $.expression, '%]'),
 
@@ -117,7 +115,10 @@ else_clause: $ => prec(1, seq(
       '[%', optional(choice('-', '+', '=', '~')), 'END', '%]'
     ),
 
-    case_clause: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'CASE', $.expression, '%]', repeat($._node)),
+    case_clause: $ => seq(
+      '[%', optional(choice('-', '+', '=', '~')), 'CASE', $.expression, '%]',
+      repeat($._node)
+    ),
 
     use: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'USE', $.expression, optional($.args), '%]'),
 
@@ -145,20 +146,12 @@ else_clause: $ => prec(1, seq(
       $.field_access,
       $.map,
       $.array,
-      $.binary_operation,
-      $.function_call,
-      $.pipe_expression,
+      $.parenthesized_expression,
       $.string,
       $.number,
       $.variable,
       $.identifier
     ),
-
-    assignment: $ => prec.left(seq(
-      field('left', $.field_access),
-      '=',
-      field('right', $.expression)
-    )),
 
     conditional_expression: $ => prec.right(seq(
       $.expression,
@@ -168,20 +161,15 @@ else_clause: $ => prec(1, seq(
       $.expression
     )),
 
-    field_access: $ => prec(2, seq(
+    assignment: $ => prec.left(seq(
+      field('left', $.field_access),
+      '=',
+      field('right', $.expression)
+    )),
+
+    field_access: $ => prec(1, seq(
       $.variable,
-      repeat1(seq('.', $.identifier))
-    )),
-
-    pipe_expression: $ => prec(1, seq(
-      $.expression,
-      repeat1(seq('|', $.identifier))
-    )),
-
-    binary_operation: $ => prec.left(seq(
-      $.expression,
-      '_',
-      $.expression
+      repeat(seq('.', $.identifier))
     )),
 
     map: $ => seq(
@@ -196,10 +184,9 @@ else_clause: $ => prec(1, seq(
       ']'
     ),
 
-    function_call: $ => seq(
-      $.identifier,
+    parenthesized_expression: $ => seq(
       '(',
-      optional(commaSep1($.expression)),
+      $.expression,
       ')'
     ),
 
@@ -208,14 +195,15 @@ else_clause: $ => prec(1, seq(
     identifier: $ => /[a-zA-Z_][a-zA-Z0-9_]*/,
 
     string: $ => choice(
-      seq('"', repeat(/[^\"]*/), '"'),
-      seq("'", repeat(/[^\']*/), "'")
+      seq('"', repeat(/[^"]/), '"'),
+      seq("'", repeat(/[^']/), "'")
     ),
 
     number: $ => /\d+(\.\d+)?/,
   }
 });
 
+// helper
 function commaSep1(rule) {
   return seq(rule, repeat(seq(',', rule)));
 }
