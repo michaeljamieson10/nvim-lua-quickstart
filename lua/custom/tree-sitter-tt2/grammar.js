@@ -5,17 +5,18 @@ module.exports = grammar({
     /\s/,
   ],
 
-conflicts: $ => [
-  [$.block, $.end],
-  [$.foreach, $.end],
-  [$.if_statement, $.end],
-  [$.switch_statement, $.end],
-  [$.wrapper, $.end],
-  [$.case_clause, $.switch_statement],
-  [$.perl_block, $.end],   
-  [$.case_clause],         
+  conflicts: $ => [
+    [$.block, $.end],
+    [$.foreach, $.end],
+    [$.if_statement, $.end],
+    [$.switch_statement, $.end],
+    [$.wrapper, $.end],
+    [$.case_clause, $.switch_statement],
+    [$.perl_block, $.end],
+    [$.case_clause],
+    [$.field_access, $.variable] 
+  ],
 
-],
   rules: {
     source_file: $ => repeat($._node),
 
@@ -66,7 +67,9 @@ conflicts: $ => [
     ),
 
     call: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'CALL', $.expression, '%]'),
+
     default: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'DEFAULT', $.expression, '%]'),
+
     end: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'END', '%]'),
 
     foreach: $ => seq(
@@ -123,8 +126,58 @@ conflicts: $ => [
 
     args: $ => repeat1($.expression),
 
-    expression: $ => /[^%\]\n]+/,
+    // -- 🧠 Upgraded Expression Parsing --
+    expression: $ => choice(
+      $.conditional_expression,
+      $.assignment,
+      $.field_access,
+      $.map,
+      $.string,
+      $.number,
+      $.variable,
+      $.identifier
+    ),
+
+    assignment: $ => prec.left(seq(
+      field('left', $.field_access),
+      '=',
+      field('right', $.expression)
+    )),
+
+    conditional_expression: $ => prec.right(seq(
+      $.expression,
+      '?',
+      $.expression,
+      ':',
+      $.expression
+    )),
+
+    field_access: $ => prec(1, seq(   // fix this
+      $.variable,
+      repeat(seq('.', $.identifier))
+    )),
+
+    map: $ => seq(
+      '{',
+      optional(commaSep1(seq($.string, '=', $.expression))),
+      '}'
+    ),
+
+    variable: $ => /\$[a-zA-Z_][a-zA-Z0-9_]*/,
 
     identifier: $ => /[a-zA-Z_][a-zA-Z0-9_]*/,
+
+    string: $ => choice(
+      seq('"', repeat(/[^"]/), '"'),
+      seq("'", repeat(/[^']/), "'")
+    ),
+
+    number: $ => /\d+(\.\d+)?/,
   }
 });
+
+// helper for comma separated items
+function commaSep1(rule) {
+  return seq(rule, repeat(seq(',', rule)));
+}
+
