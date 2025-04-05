@@ -3,6 +3,7 @@ module.exports = grammar({
 
   extras: $ => [
     /\s/,
+    $.comment,
   ],
 
   conflicts: $ => [
@@ -15,7 +16,12 @@ module.exports = grammar({
     [$.perl_block, $.end],
     [$.case_clause],
     [$.field_access, $.variable],
-  [$.expression, $.array],     // <= ✨ ADD THIS LINE
+    [$.expression, $.array],
+    [$.if_statement, $.elsif_clause],
+    [$.if_statement, $.else_clause],
+[$.elsif_clause, $.else_clause],
+  [$.elsif_clause],                 // Important (NEW)
+  [$.else_clause],                 // Important (NEW)
 
   ],
 
@@ -45,13 +51,7 @@ module.exports = grammar({
       $.text,
     ),
 
-    comment: $ => seq(
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      '#',
-      /.*/,
-      '%]'
-    ),
+    comment: $ => token(seq('#', /.*/)),
 
     text: $ => /[^\[%]+/,
 
@@ -82,13 +82,24 @@ module.exports = grammar({
 
     get: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'GET', $.expression, '%]'),
 
-    if_statement: $ => seq(
-      '[%', optional(choice('-', '+', '=', '~')), 'IF', $.expression, '%]',
-      repeat($._node),
-      optional(seq('[%', optional(choice('-', '+', '=', '~')), 'ELSE', '%]', repeat($._node))),
-      optional(seq('[%', optional(choice('-', '+', '=', '~')), 'ELSIF', $.expression, '%]', repeat($._node))),
-      '[%', optional(choice('-', '+', '=', '~')), 'END', '%]'
-    ),
+if_statement: $ => seq(
+  '[%', optional(choice('-', '+', '=', '~')), 'IF', $.expression, '%]',
+  repeat($._node),
+  repeat($.elsif_clause),
+  optional($.else_clause),
+  '[%', optional(choice('-', '+', '=', '~')), 'END', '%]'
+),
+
+elsif_clause: $ => seq(
+  '[%', optional(choice('-', '+', '=', '~')), 'ELSIF', $.expression, '%]',
+  repeat($._node)
+),
+
+else_clause: $ => prec(1, seq(
+  '[%', optional(choice('-', '+', '=', '~')), 'ELSE', '%]',
+  repeat($._node)
+)),
+
 
     insert: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'INSERT', $.expression, '%]'),
 
@@ -133,12 +144,15 @@ module.exports = grammar({
       $.assignment,
       $.field_access,
       $.map,
-      $.array,          // <= ✅ ADD this
+      $.array,
+      $.binary_operation,
+      $.function_call,
+      $.pipe_expression,
       $.string,
       $.number,
       $.variable,
       $.identifier
-  ),
+    ),
 
     assignment: $ => prec.left(seq(
       field('left', $.field_access),
@@ -154,29 +168,39 @@ module.exports = grammar({
       $.expression
     )),
 
-    field_access: $ => prec(1, seq(   // fix this
+    field_access: $ => prec(2, seq(
       $.variable,
-      repeat(seq('.', $.identifier))
+      repeat1(seq('.', $.identifier))
     )),
 
+    pipe_expression: $ => prec(1, seq(
+      $.expression,
+      repeat1(seq('|', $.identifier))
+    )),
+
+    binary_operation: $ => prec.left(seq(
+      $.expression,
+      '_',
+      $.expression
+    )),
+
+    map: $ => seq(
+      '{',
+      optional(commaSep1(seq($.string, choice('=', '=>'), $.expression))),
+      '}'
+    ),
 
     array: $ => seq(
       '[',
       optional(commaSep1($.expression)),
-      optional(','),
       ']'
     ),
 
-    map: $ => seq(
-      '{',
-      optional(commaSep1(seq($.key, choice('=', '=>'), $.expression))),
-      optional(','),
-      '}'
-    ),
-
-    key: $ => choice(
+    function_call: $ => seq(
       $.identifier,
-      $.string
+      '(',
+      optional(commaSep1($.expression)),
+      ')'
     ),
 
     variable: $ => /\$[a-zA-Z_][a-zA-Z0-9_]*/,
@@ -184,8 +208,8 @@ module.exports = grammar({
     identifier: $ => /[a-zA-Z_][a-zA-Z0-9_]*/,
 
     string: $ => choice(
-      seq('"', repeat(/[^"]/), '"'),
-      seq("'", repeat(/[^']/), "'")
+      seq('"', repeat(/[^\"]*/), '"'),
+      seq("'", repeat(/[^\']*/), "'")
     ),
 
     number: $ => /\d+(\.\d+)?/,
