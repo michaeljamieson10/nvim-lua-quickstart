@@ -169,15 +169,16 @@ module.exports = grammar({
 
     map: $ => seq(
       '{',
-      optional(commaSep1(seq($.key, '=', $.expression))),
+      optional(commaSep1(seq($.key, choice('=', '=>'), $.expression))),
       optional(','),
       '}'
     ),
 
-key: $ => choice(
-  $.identifier,
-  $.string
-),
+    key: $ => choice(
+      $.identifier,
+      $.string
+    ),
+
     variable: $ => /\$[a-zA-Z_][a-zA-Z0-9_]*/,
 
     identifier: $ => /[a-zA-Z_][a-zA-Z0-9_]*/,
