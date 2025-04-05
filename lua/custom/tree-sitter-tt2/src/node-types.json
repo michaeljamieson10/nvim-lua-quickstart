@@ -1,9 +1,24 @@
 [
   {
-    "type": "block_statement",
+    "type": "args",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "block",
     "named": true,
     "fields": {
-      "block_name": {
+      "name": {
         "multiple": false,
         "required": true,
         "types": [
@@ -19,11 +34,31 @@
       "required": false,
       "types": [
         {
-          "type": "block_statement",
+          "type": "block",
           "named": true
         },
         {
-          "type": "for_statement",
+          "type": "call",
+          "named": true
+        },
+        {
+          "type": "comment",
+          "named": true
+        },
+        {
+          "type": "default",
+          "named": true
+        },
+        {
+          "type": "end",
+          "named": true
+        },
+        {
+          "type": "foreach",
+          "named": true
+        },
+        {
+          "type": "get",
           "named": true
         },
         {
@@ -31,7 +66,27 @@
           "named": true
         },
         {
-          "type": "other_text",
+          "type": "include",
+          "named": true
+        },
+        {
+          "type": "insert",
+          "named": true
+        },
+        {
+          "type": "macro",
+          "named": true
+        },
+        {
+          "type": "process",
+          "named": true
+        },
+        {
+          "type": "set",
+          "named": true
+        },
+        {
+          "type": "switch_statement",
           "named": true
         },
         {
@@ -39,47 +94,73 @@
           "named": true
         },
         {
-          "type": "variable_reference",
+          "type": "text",
+          "named": true
+        },
+        {
+          "type": "use",
+          "named": true
+        },
+        {
+          "type": "wrapper",
           "named": true
         }
       ]
     }
   },
   {
-    "type": "for_statement",
+    "type": "call",
     "named": true,
-    "fields": {
-      "item": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "variable_reference",
-            "named": true
-          }
-        ]
-      },
-      "list": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "expression",
-            "named": true
-          }
-        ]
-      }
-    },
+    "fields": {},
     "children": {
-      "multiple": true,
-      "required": false,
+      "multiple": false,
+      "required": true,
       "types": [
         {
-          "type": "block_statement",
+          "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "case_clause",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "block",
           "named": true
         },
         {
-          "type": "for_statement",
+          "type": "call",
+          "named": true
+        },
+        {
+          "type": "comment",
+          "named": true
+        },
+        {
+          "type": "default",
+          "named": true
+        },
+        {
+          "type": "end",
+          "named": true
+        },
+        {
+          "type": "expression",
+          "named": true
+        },
+        {
+          "type": "foreach",
+          "named": true
+        },
+        {
+          "type": "get",
           "named": true
         },
         {
@@ -87,7 +168,27 @@
           "named": true
         },
         {
-          "type": "other_text",
+          "type": "include",
+          "named": true
+        },
+        {
+          "type": "insert",
+          "named": true
+        },
+        {
+          "type": "macro",
+          "named": true
+        },
+        {
+          "type": "process",
+          "named": true
+        },
+        {
+          "type": "set",
+          "named": true
+        },
+        {
+          "type": "switch_statement",
           "named": true
         },
         {
@@ -95,7 +196,142 @@
           "named": true
         },
         {
-          "type": "variable_reference",
+          "type": "text",
+          "named": true
+        },
+        {
+          "type": "use",
+          "named": true
+        },
+        {
+          "type": "wrapper",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "comment",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "default",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "end",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "foreach",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "block",
+          "named": true
+        },
+        {
+          "type": "call",
+          "named": true
+        },
+        {
+          "type": "comment",
+          "named": true
+        },
+        {
+          "type": "default",
+          "named": true
+        },
+        {
+          "type": "end",
+          "named": true
+        },
+        {
+          "type": "expression",
+          "named": true
+        },
+        {
+          "type": "foreach",
+          "named": true
+        },
+        {
+          "type": "get",
+          "named": true
+        },
+        {
+          "type": "if_statement",
+          "named": true
+        },
+        {
+          "type": "include",
+          "named": true
+        },
+        {
+          "type": "insert",
+          "named": true
+        },
+        {
+          "type": "macro",
+          "named": true
+        },
+        {
+          "type": "process",
+          "named": true
+        },
+        {
+          "type": "set",
+          "named": true
+        },
+        {
+          "type": "switch_statement",
+          "named": true
+        },
+        {
+          "type": "template_tag",
+          "named": true
+        },
+        {
+          "type": "text",
+          "named": true
+        },
+        {
+          "type": "use",
+          "named": true
+        },
+        {
+          "type": "wrapper",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "get",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "expression",
           "named": true
         }
       ]
@@ -104,28 +340,41 @@
   {
     "type": "if_statement",
     "named": true,
-    "fields": {
-      "condition": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "expression",
-            "named": true
-          }
-        ]
-      }
-    },
+    "fields": {},
     "children": {
       "multiple": true,
-      "required": false,
+      "required": true,
       "types": [
         {
-          "type": "block_statement",
+          "type": "block",
           "named": true
         },
         {
-          "type": "for_statement",
+          "type": "call",
+          "named": true
+        },
+        {
+          "type": "comment",
+          "named": true
+        },
+        {
+          "type": "default",
+          "named": true
+        },
+        {
+          "type": "end",
+          "named": true
+        },
+        {
+          "type": "expression",
+          "named": true
+        },
+        {
+          "type": "foreach",
+          "named": true
+        },
+        {
+          "type": "get",
           "named": true
         },
         {
@@ -133,7 +382,27 @@
           "named": true
         },
         {
-          "type": "other_text",
+          "type": "include",
+          "named": true
+        },
+        {
+          "type": "insert",
+          "named": true
+        },
+        {
+          "type": "macro",
+          "named": true
+        },
+        {
+          "type": "process",
+          "named": true
+        },
+        {
+          "type": "set",
+          "named": true
+        },
+        {
+          "type": "switch_statement",
           "named": true
         },
         {
@@ -141,7 +410,102 @@
           "named": true
         },
         {
-          "type": "variable_reference",
+          "type": "text",
+          "named": true
+        },
+        {
+          "type": "use",
+          "named": true
+        },
+        {
+          "type": "wrapper",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "include",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "args",
+          "named": true
+        },
+        {
+          "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "insert",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "macro",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "expression",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "process",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "args",
+          "named": true
+        },
+        {
+          "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "set",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "expression",
           "named": true
         }
       ]
@@ -157,11 +521,31 @@
       "required": false,
       "types": [
         {
-          "type": "block_statement",
+          "type": "block",
           "named": true
         },
         {
-          "type": "for_statement",
+          "type": "call",
+          "named": true
+        },
+        {
+          "type": "comment",
+          "named": true
+        },
+        {
+          "type": "default",
+          "named": true
+        },
+        {
+          "type": "end",
+          "named": true
+        },
+        {
+          "type": "foreach",
+          "named": true
+        },
+        {
+          "type": "get",
           "named": true
         },
         {
@@ -169,7 +553,27 @@
           "named": true
         },
         {
-          "type": "other_text",
+          "type": "include",
+          "named": true
+        },
+        {
+          "type": "insert",
+          "named": true
+        },
+        {
+          "type": "macro",
+          "named": true
+        },
+        {
+          "type": "process",
+          "named": true
+        },
+        {
+          "type": "set",
+          "named": true
+        },
+        {
+          "type": "switch_statement",
           "named": true
         },
         {
@@ -177,7 +581,34 @@
           "named": true
         },
         {
-          "type": "variable_reference",
+          "type": "text",
+          "named": true
+        },
+        {
+          "type": "use",
+          "named": true
+        },
+        {
+          "type": "wrapper",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "switch_statement",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "case_clause",
+          "named": true
+        },
+        {
+          "type": "expression",
           "named": true
         }
       ]
@@ -199,11 +630,133 @@
     }
   },
   {
-    "type": "-%]",
+    "type": "use",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "args",
+          "named": true
+        },
+        {
+          "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "wrapper",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "args",
+          "named": true
+        },
+        {
+          "type": "block",
+          "named": true
+        },
+        {
+          "type": "call",
+          "named": true
+        },
+        {
+          "type": "comment",
+          "named": true
+        },
+        {
+          "type": "default",
+          "named": true
+        },
+        {
+          "type": "end",
+          "named": true
+        },
+        {
+          "type": "expression",
+          "named": true
+        },
+        {
+          "type": "foreach",
+          "named": true
+        },
+        {
+          "type": "get",
+          "named": true
+        },
+        {
+          "type": "if_statement",
+          "named": true
+        },
+        {
+          "type": "include",
+          "named": true
+        },
+        {
+          "type": "insert",
+          "named": true
+        },
+        {
+          "type": "macro",
+          "named": true
+        },
+        {
+          "type": "process",
+          "named": true
+        },
+        {
+          "type": "set",
+          "named": true
+        },
+        {
+          "type": "switch_statement",
+          "named": true
+        },
+        {
+          "type": "template_tag",
+          "named": true
+        },
+        {
+          "type": "text",
+          "named": true
+        },
+        {
+          "type": "use",
+          "named": true
+        },
+        {
+          "type": "wrapper",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "#",
     "named": false
   },
   {
-    "type": ";",
+    "type": "%]",
+    "named": false
+  },
+  {
+    "type": "+",
+    "named": false
+  },
+  {
+    "type": "-",
+    "named": false
+  },
+  {
+    "type": "=",
     "named": false
   },
   {
@@ -211,11 +764,31 @@
     "named": false
   },
   {
+    "type": "CALL",
+    "named": false
+  },
+  {
+    "type": "CASE",
+    "named": false
+  },
+  {
+    "type": "DEFAULT",
+    "named": false
+  },
+  {
+    "type": "ELSE",
+    "named": false
+  },
+  {
     "type": "END",
     "named": false
   },
   {
-    "type": "FOR",
+    "type": "FOREACH",
+    "named": false
+  },
+  {
+    "type": "GET",
     "named": false
   },
   {
@@ -223,11 +796,39 @@
     "named": false
   },
   {
-    "type": "IN",
+    "type": "INCLUDE",
     "named": false
   },
   {
-    "type": "[%-",
+    "type": "INSERT",
+    "named": false
+  },
+  {
+    "type": "MACRO",
+    "named": false
+  },
+  {
+    "type": "PROCESS",
+    "named": false
+  },
+  {
+    "type": "SET",
+    "named": false
+  },
+  {
+    "type": "SWITCH",
+    "named": false
+  },
+  {
+    "type": "USE",
+    "named": false
+  },
+  {
+    "type": "WRAPPER",
+    "named": false
+  },
+  {
+    "type": "[%",
     "named": false
   },
   {
@@ -239,11 +840,11 @@
     "named": true
   },
   {
-    "type": "other_text",
+    "type": "text",
     "named": true
   },
   {
-    "type": "variable_reference",
-    "named": true
+    "type": "~",
+    "named": false
   }
 ]
