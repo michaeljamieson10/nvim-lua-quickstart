@@ -74,6 +74,14 @@
         },
         {
           "type": "SYMBOL",
+          "name": "perl_block"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "outline_statement"
+        },
+        {
+          "type": "SYMBOL",
           "name": "template_tag"
         },
         {
@@ -138,7 +146,7 @@
     },
     "text": {
       "type": "PATTERN",
-      "value": "[^\\[\\]]+"
+      "value": "[^\\[%]+"
     },
     "template_tag": {
       "type": "SEQ",
@@ -479,8 +487,17 @@
           ]
         },
         {
-          "type": "STRING",
-          "value": "FOREACH"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "FOREACH"
+            },
+            {
+              "type": "STRING",
+              "value": "FOR"
+            }
+          ]
         },
         {
           "type": "SYMBOL",
@@ -687,6 +704,71 @@
                 {
                   "type": "STRING",
                   "value": "ELSE"
+                },
+                {
+                  "type": "STRING",
+                  "value": "%]"
+                },
+                {
+                  "type": "REPEAT",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "_node"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": "[%"
+                },
+                {
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "CHOICE",
+                      "members": [
+                        {
+                          "type": "STRING",
+                          "value": "-"
+                        },
+                        {
+                          "type": "STRING",
+                          "value": "+"
+                        },
+                        {
+                          "type": "STRING",
+                          "value": "="
+                        },
+                        {
+                          "type": "STRING",
+                          "value": "~"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "BLANK"
+                    }
+                  ]
+                },
+                {
+                  "type": "STRING",
+                  "value": "ELSIF"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "expression"
                 },
                 {
                   "type": "STRING",
@@ -1079,7 +1161,7 @@
           "value": "%]"
         },
         {
-          "type": "REPEAT1",
+          "type": "REPEAT",
           "content": {
             "type": "SYMBOL",
             "name": "case_clause"
@@ -1357,6 +1439,124 @@
         }
       ]
     },
+    "perl_block": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "[%"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "RAW"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": "PERL"
+        },
+        {
+          "type": "STRING",
+          "value": "%]"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_node"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "[%"
+        },
+        {
+          "type": "STRING",
+          "value": "END"
+        },
+        {
+          "type": "STRING",
+          "value": "%]"
+        }
+      ]
+    },
+    "outline_statement": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "%%"
+        },
+        {
+          "type": "PATTERN",
+          "value": "\\s*"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "if"
+            },
+            {
+              "type": "STRING",
+              "value": "elsif"
+            },
+            {
+              "type": "STRING",
+              "value": "else"
+            },
+            {
+              "type": "STRING",
+              "value": "end"
+            },
+            {
+              "type": "STRING",
+              "value": "for"
+            },
+            {
+              "type": "STRING",
+              "value": "foreach"
+            },
+            {
+              "type": "STRING",
+              "value": "block"
+            },
+            {
+              "type": "STRING",
+              "value": "include"
+            },
+            {
+              "type": "STRING",
+              "value": "process"
+            },
+            {
+              "type": "STRING",
+              "value": "wrapper"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "expression"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        }
+      ]
+    },
     "args": {
       "type": "REPEAT1",
       "content": {
@@ -1366,7 +1566,7 @@
     },
     "expression": {
       "type": "PATTERN",
-      "value": "[^%\\]]+"
+      "value": "[^%\\]\\n]+"
     },
     "identifier": {
       "type": "PATTERN",
@@ -1393,11 +1593,22 @@
       "end"
     ],
     [
+      "switch_statement",
+      "end"
+    ],
+    [
       "wrapper",
       "end"
     ],
     [
       "case_clause",
+      "switch_statement"
+    ],
+    [
+      "perl_block",
+      "end"
+    ],
+    [
       "case_clause"
     ]
   ],

@@ -9,11 +9,13 @@ conflicts: $ => [
   [$.block, $.end],
   [$.foreach, $.end],
   [$.if_statement, $.end],
+  [$.switch_statement, $.end],
   [$.wrapper, $.end],
-  [$.case_clause, $.case_clause],
+  [$.case_clause, $.switch_statement],
+  [$.perl_block, $.end],   
+  [$.case_clause],         
+
 ],
-
-
   rules: {
     source_file: $ => repeat($._node),
 
@@ -33,6 +35,8 @@ conflicts: $ => [
       $.switch_statement,
       $.use,
       $.wrapper,
+      $.perl_block,
+      $.outline_statement,
       $.template_tag,
       $.comment,
       $.text,
@@ -46,8 +50,7 @@ conflicts: $ => [
       '%]'
     ),
 
-    text: $ => /[^\[\]]+/,
-
+    text: $ => /[^\[%]+/,
 
     template_tag: $ => seq(
       '[%',
@@ -57,160 +60,71 @@ conflicts: $ => [
     ),
 
     block: $ => seq(
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'BLOCK', field('name', $.identifier),
-      '%]',
+      '[%', optional(choice('-', '+', '=', '~')), 'BLOCK', field('name', $.identifier), '%]',
       repeat($._node),
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'END',
-      '%]'
+      '[%', optional(choice('-', '+', '=', '~')), 'END', '%]'
     ),
 
-    call: $ => seq(
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'CALL', $.expression,
-      '%]'
-    ),
-
-    default: $ => seq(
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'DEFAULT', $.expression,
-      '%]'
-    ),
-
-    end: $ => seq(
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'END',
-      '%]'
-    ),
+    call: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'CALL', $.expression, '%]'),
+    default: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'DEFAULT', $.expression, '%]'),
+    end: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'END', '%]'),
 
     foreach: $ => seq(
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'FOREACH', $.expression,
-      '%]',
+      '[%', optional(choice('-', '+', '=', '~')), choice('FOREACH', 'FOR'), $.expression, '%]',
       repeat($._node),
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'END',
-      '%]'
+      '[%', optional(choice('-', '+', '=', '~')), 'END', '%]'
     ),
 
-    get: $ => seq(
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'GET', $.expression,
-      '%]'
-    ),
+    get: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'GET', $.expression, '%]'),
 
     if_statement: $ => seq(
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'IF', $.expression,
-      '%]',
+      '[%', optional(choice('-', '+', '=', '~')), 'IF', $.expression, '%]',
       repeat($._node),
-      optional(seq(
-        '[%',
-        optional(choice('-', '+', '=', '~')),
-        'ELSE',
-        '%]',
-        repeat($._node)
-      )),
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'END',
-      '%]'
+      optional(seq('[%', optional(choice('-', '+', '=', '~')), 'ELSE', '%]', repeat($._node))),
+      optional(seq('[%', optional(choice('-', '+', '=', '~')), 'ELSIF', $.expression, '%]', repeat($._node))),
+      '[%', optional(choice('-', '+', '=', '~')), 'END', '%]'
     ),
 
-    insert: $ => seq(
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'INSERT', $.expression,
-      '%]'
-    ),
+    insert: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'INSERT', $.expression, '%]'),
 
-    include: $ => seq(
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'INCLUDE', $.expression,
-      optional($.args),
-      '%]'
-    ),
+    include: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'INCLUDE', $.expression, optional($.args), '%]'),
 
-    macro: $ => seq(
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'MACRO', $.identifier,
-      repeat($.expression),
-      '%]'
-    ),
+    macro: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'MACRO', $.identifier, repeat($.expression), '%]'),
 
-    process: $ => seq(
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'PROCESS', $.expression,
-      optional($.args),
-      '%]'
-    ),
+    process: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'PROCESS', $.expression, optional($.args), '%]'),
 
-    set: $ => seq(
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'SET', $.expression,
-      '%]'
-    ),
+    set: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'SET', $.expression, '%]'),
 
     switch_statement: $ => seq(
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'SWITCH', $.expression,
-      '%]',
-      repeat1($.case_clause),
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'END',
-      '%]'
+      '[%', optional(choice('-', '+', '=', '~')), 'SWITCH', $.expression, '%]',
+      repeat($.case_clause),
+      '[%', optional(choice('-', '+', '=', '~')), 'END', '%]'
     ),
 
-    case_clause: $ => seq(
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'CASE', $.expression,
-      '%]',
-      repeat($._node)
-    ),
+    case_clause: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'CASE', $.expression, '%]', repeat($._node)),
 
-    use: $ => seq(
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'USE', $.expression,
-      optional($.args),
-      '%]'
-    ),
+    use: $ => seq('[%', optional(choice('-', '+', '=', '~')), 'USE', $.expression, optional($.args), '%]'),
 
     wrapper: $ => seq(
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'WRAPPER', $.expression,
-      optional($.args),
-      '%]',
+      '[%', optional(choice('-', '+', '=', '~')), 'WRAPPER', $.expression, optional($.args), '%]',
       repeat($._node),
-      '[%',
-      optional(choice('-', '+', '=', '~')),
-      'END',
-      '%]'
+      '[%', optional(choice('-', '+', '=', '~')), 'END', '%]'
+    ),
+
+    perl_block: $ => seq(
+      '[%', optional('RAW'), 'PERL', '%]',
+      repeat($._node),
+      '[%', 'END', '%]'
+    ),
+
+    outline_statement: $ => seq(
+      '%%', /\s*/, choice('if', 'elsif', 'else', 'end', 'for', 'foreach', 'block', 'include', 'process', 'wrapper'), optional($.expression)
     ),
 
     args: $ => repeat1($.expression),
 
-    expression: $ => /[^%\]]+/,
+    expression: $ => /[^%\]\n]+/,
 
     identifier: $ => /[a-zA-Z_][a-zA-Z0-9_]*/,
   }
 });
-
