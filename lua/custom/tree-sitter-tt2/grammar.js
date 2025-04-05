@@ -14,7 +14,9 @@ module.exports = grammar({
     [$.case_clause, $.switch_statement],
     [$.perl_block, $.end],
     [$.case_clause],
-    [$.field_access, $.variable] 
+    [$.field_access, $.variable],
+  [$.expression, $.array],     // <= ✨ ADD THIS LINE
+
   ],
 
   rules: {
@@ -126,17 +128,17 @@ module.exports = grammar({
 
     args: $ => repeat1($.expression),
 
-    // -- 🧠 Upgraded Expression Parsing --
     expression: $ => choice(
       $.conditional_expression,
       $.assignment,
       $.field_access,
       $.map,
+      $.array,          // <= ✅ ADD this
       $.string,
       $.number,
       $.variable,
       $.identifier
-    ),
+  ),
 
     assignment: $ => prec.left(seq(
       field('left', $.field_access),
@@ -162,7 +164,12 @@ module.exports = grammar({
       optional(commaSep1(seq($.string, '=', $.expression))),
       '}'
     ),
-
+    array: $ => seq(
+      '[',
+      commaSep1(choice($.map, $.expression)),
+      ']'
+    ),
+ 
     variable: $ => /\$[a-zA-Z_][a-zA-Z0-9_]*/,
 
     identifier: $ => /[a-zA-Z_][a-zA-Z0-9_]*/,

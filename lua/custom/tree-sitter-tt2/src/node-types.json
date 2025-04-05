@@ -15,6 +15,25 @@
     }
   },
   {
+    "type": "array",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "expression",
+          "named": true
+        },
+        {
+          "type": "map",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "assignment",
     "named": true,
     "fields": {
@@ -300,6 +319,10 @@
       "multiple": false,
       "required": true,
       "types": [
+        {
+          "type": "array",
+          "named": true
+        },
         {
           "type": "assignment",
           "named": true
@@ -1153,7 +1176,15 @@
     "named": false
   },
   {
+    "type": "[",
+    "named": false
+  },
+  {
     "type": "[%",
+    "named": false
+  },
+  {
+    "type": "]",
     "named": false
   },
   {
