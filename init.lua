@@ -243,8 +243,34 @@ vim.opt.rtp:prepend(lazypath)
 --  To update plugins you can run
 --    :Lazy update
 --
+--
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'csv', 'tsv' },
+  callback = function()
+    vim.opt_local.wrap = false -- No line wrap
+    vim.opt_local.linebreak = false -- No smart breaking
+    vim.opt_local.breakindent = false -- No indent carryover
+  end,
+})
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup({
+
+  {
+    'cameron-wags/rainbow_csv.nvim',
+    config = true,
+    ft = {
+      'csv',
+      'tsv',
+      'csv_pipe',
+      'csv_semicolon',
+    },
+    cmd = {
+      'RainbowDelim',
+      'Select',
+      'Update',
+      'RBQL',
+    },
+  },
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
   {
@@ -1114,6 +1140,7 @@ require('lazy').setup({
       ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
       -- Autoinstall languages that are not installed
       auto_install = true,
+      ignore_install = { 'csv' },
       highlight = {
         enable = true,
         -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
