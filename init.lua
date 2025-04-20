@@ -192,10 +192,43 @@ vim.keymap.set('n', '<leader>j', ':resize -15<CR>', { noremap = true, silent = t
 vim.keymap.set('n', '<leader>h', ':vertical resize -15<CR>', { noremap = true, silent = true }) -- Decrease width
 vim.keymap.set('n', '<leader>l', ':vertical resize +15<CR>', { noremap = true, silent = true }) -- Increase width
 
--- Keybinds to make split navigation easier.
---  Use CTRL+<hjkl> to switch between windows
---
---  See `:help wincmd` for a list of all window commands
+vim.keymap.set('n', '<leader>cc', '<cmd>ClaudeCode<CR>', { desc = 'Toggle Claude Code' })
+vim.keymap.set('n', '<leader>cp', function()
+  local path = vim.fn.expand '%:p'
+  vim.ui.input({ prompt = 'What should Claude do with this file?\n→ ' }, function(user_prompt)
+    if user_prompt == nil or user_prompt == '' then
+      print 'Cancelled.'
+      return
+    end
+
+    -- Open Claude terminal if it isn't already
+    vim.cmd 'ClaudeCode'
+
+    -- Delay a bit so terminal opens properly
+    vim.defer_fn(function()
+      local message = user_prompt .. '\nFile path: ' .. path .. '\n'
+      vim.api.nvim_chan_send(vim.b.terminal_job_id, message)
+      print('Sent to Claude: ' .. message)
+    end, 100)
+  end)
+end, { desc = 'Prompt Claude about current file' }) -- Keybinds to make split navigation easier.
+
+vim.keymap.set('n', '<leader>cx', function()
+  local path = vim.fn.expand '%:p'
+  local last_prompt = vim.fn.histget('cmd', -1)
+
+  if not last_prompt or last_prompt == '' then
+    print 'No previous command found.'
+    return
+  end
+
+  vim.cmd 'ClaudeCode'
+
+  vim.defer_fn(function()
+    local message = last_prompt .. '\n\nTarget file: ' .. path .. '\n'
+    vim.api.nvim_chan_send(vim.b.terminal_job_id, message)
+  end, 100)
+end, { desc = 'Send last prompt and file path to Claude' }) --  See `:help wincmd` for a list of all window commands
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
@@ -207,6 +240,13 @@ end, { desc = 'Yank file’s directory to clipboard' })
 vim.keymap.set('n', '<leader>jc', function()
   vim.cmd 'split | terminal curl -s https://jsonplaceholder.typicode.com/posts/1'
 end, { desc = 'Fetch JSON Placeholder Post' })
+vim.keymap.set('n', '<leader>yp', function()
+  local dir = vim.fn.expand '%:p:h' -- directory path
+  local file = vim.fn.expand '%:t' -- just the file name
+  local path = dir .. '/' .. file
+  vim.fn.setreg('+', path)
+  print('Copied full path: ' .. path)
+end, { desc = 'Yank file’s directory + name' })
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -277,7 +317,15 @@ require('lazy').setup({
     'tpope/vim-obsession', -- Session management plugin
     lazy = false, -- Load the plugin on startup
   },
-
+  {
+    'greggh/claude-code.nvim',
+    dependencies = {
+      'nvim-lua/plenary.nvim', -- Required for git operations
+    },
+    config = function()
+      require('claude-code').setup()
+    end,
+  },
   {
     'windwp/nvim-ts-autotag',
     dependencies = { 'nvim-treesitter/nvim-treesitter' },
