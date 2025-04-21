@@ -193,42 +193,17 @@ vim.keymap.set('n', '<leader>h', ':vertical resize -15<CR>', { noremap = true, s
 vim.keymap.set('n', '<leader>l', ':vertical resize +15<CR>', { noremap = true, silent = true }) -- Increase width
 
 vim.keymap.set('n', '<leader>cc', '<cmd>ClaudeCode<CR>', { desc = 'Toggle Claude Code' })
-vim.keymap.set('n', '<leader>cp', function()
-  local path = vim.fn.expand '%:p'
-  vim.ui.input({ prompt = 'What should Claude do with this file?\n→ ' }, function(user_prompt)
-    if user_prompt == nil or user_prompt == '' then
-      print 'Cancelled.'
-      return
-    end
-
-    -- Open Claude terminal if it isn't already
-    vim.cmd 'ClaudeCode'
-
-    -- Delay a bit so terminal opens properly
-    vim.defer_fn(function()
-      local message = user_prompt .. '\nFile path: ' .. path .. '\n'
-      vim.api.nvim_chan_send(vim.b.terminal_job_id, message)
-      print('Sent to Claude: ' .. message)
-    end, 100)
-  end)
-end, { desc = 'Prompt Claude about current file' }) -- Keybinds to make split navigation easier.
-
+-- Somewhere else in your config (e.g. when sending a prompt), store it manually:
 vim.keymap.set('n', '<leader>cx', function()
   local path = vim.fn.expand '%:p'
-  local last_prompt = vim.fn.histget('cmd', -1)
-
-  if not last_prompt or last_prompt == '' then
-    print 'No previous command found.'
-    return
-  end
 
   vim.cmd 'ClaudeCode'
 
   vim.defer_fn(function()
-    local message = last_prompt .. '\n\nTarget file: ' .. path .. '\n'
+    local message = 'Custom target file:\n\n' .. path .. '\n'
     vim.api.nvim_chan_send(vim.b.terminal_job_id, message)
   end, 100)
-end, { desc = 'Send last prompt and file path to Claude' }) --  See `:help wincmd` for a list of all window commands
+end, { desc = 'Send file path to Claude' })
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
