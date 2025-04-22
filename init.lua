@@ -168,7 +168,7 @@ vim.opt.scrolloff = 10
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
-
+vim.keymap.set('n', '<leader>lg', ':LazyGit<CR>', { desc = 'Open Lazygit' })
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
@@ -269,6 +269,16 @@ vim.api.nvim_create_autocmd('FileType', {
 })
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup({
+  {
+    'kdheepak/lazygit.nvim',
+    cmd = 'LazyGit',
+    keys = {
+      { '<leader>lg', '<cmd>LazyGit<CR>', desc = 'Open Lazygit' },
+    },
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+    },
+  },
 
   {
     'cameron-wags/rainbow_csv.nvim',
