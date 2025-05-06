@@ -186,7 +186,9 @@ vim.keymap.set('n', '<leader>k', ':resize +15<CR>', { noremap = true, silent = t
 vim.keymap.set('n', '<leader>j', ':resize -15<CR>', { noremap = true, silent = true }) -- Decrease height
 vim.keymap.set('n', '<leader>h', ':vertical resize -15<CR>', { noremap = true, silent = true }) -- Decrease width
 vim.keymap.set('n', '<leader>l', ':vertical resize +15<CR>', { noremap = true, silent = true }) -- Increase width
-
+-- Map <leader>lt to :Leet test
+vim.keymap.set('n', '<leader>ls', ':Leet submit<CR>', { noremap = true, silent = true })
+vim.keymap.set('n', '<leader>lt', ':Leet test<CR>', { noremap = true, silent = true })
 vim.keymap.set('n', '<leader>cc', '<cmd>ClaudeCode<CR>', { desc = 'Toggle Claude Code' })
 -- Somewhere else in your config (e.g. when sending a prompt), store it manually:
 vim.keymap.set('n', '<leader>cx', function()
@@ -427,7 +429,7 @@ require('lazy').setup({
       'MunifTanjim/nui.nvim',
     },
     opts = {
-      lang = 'python', -- Change to your preferred language
+      lang = 'python3', -- Change to your preferred language
       use_treesitter = true,
     },
     config = function(_, opts)
