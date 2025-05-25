@@ -190,7 +190,8 @@ vim.keymap.set('n', '<leader>l', ':vertical resize +15<CR>', { noremap = true, s
 -- Map <leader>lt to :Leet test
 vim.keymap.set('n', '<leader>ls', ':Leet submit<CR>', { noremap = true, silent = true })
 vim.keymap.set('n', '<leader>lt', ':Leet test<CR>', { noremap = true, silent = true })
-vim.keymap.set('n', '<leader>cc', '<cmd>ClaudeCode<CR>', { desc = 'Toggle Claude Code' })
+vim.keymap.set('n', '<leader>lr', ':Leet reset<CR>', { noremap = true, silent = true })
+-- vim.keymap.set('n', '<leader>cc', '<cmd>ClaudeCode<CR>', { desc = 'Toggle Claude Code' })
 -- Somewhere else in your config (e.g. when sending a prompt), store it manually:
 vim.keymap.set('n', '<leader>cx', function()
   local path = vim.fn.expand '%:p'
@@ -277,7 +278,6 @@ require('lazy').setup({
       'nvim-lua/plenary.nvim',
     },
   },
-
   {
     'cameron-wags/rainbow_csv.nvim',
     config = true,
