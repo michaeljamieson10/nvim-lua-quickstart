@@ -269,6 +269,10 @@ vim.api.nvim_create_autocmd('FileType', {
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup({
   {
+    'ThePrimeagen/vim-be-good',
+    cmd = 'VimBeGood',
+  },
+  {
     'kdheepak/lazygit.nvim',
     cmd = 'LazyGit',
     keys = {
