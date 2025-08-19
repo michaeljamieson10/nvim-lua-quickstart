@@ -191,6 +191,30 @@ vim.keymap.set('n', '<leader>l', ':vertical resize +15<CR>', { noremap = true, s
 vim.keymap.set('n', '<leader>ls', ':Leet submit<CR>', { noremap = true, silent = true })
 vim.keymap.set('n', '<leader>lt', ':Leet test<CR>', { noremap = true, silent = true })
 vim.keymap.set('n', '<leader>lr', ':Leet reset<CR>', { noremap = true, silent = true })
+
+-- Replace with your actual connection string
+local db_url = 'postgresql://myuser:password@localhost:5432/testdb'
+
+-- Run whole SQL file
+vim.keymap.set('n', '<leader>mm', ':%DB ' .. db_url .. '<CR>', {
+  noremap = true,
+  silent = true,
+  desc = 'Run whole SQL file',
+})
+
+-- Run just the current visual selection
+vim.keymap.set('v', '<leader>m', ':DB ' .. db_url .. '<CR>', {
+  noremap = true,
+  silent = true,
+  desc = 'Run SQL selection',
+})
+
+-- Run just the current line
+vim.keymap.set('n', '<leader>ml', ':.DB ' .. db_url .. '<CR>', {
+  noremap = true,
+  silent = true,
+  desc = 'Run SQL line',
+})
 -- vim.keymap.set('n', '<leader>cc', '<cmd>ClaudeCode<CR>', { desc = 'Toggle Claude Code' })
 -- Somewhere else in your config (e.g. when sending a prompt), store it manually:
 vim.keymap.set('n', '<leader>cx', function()
