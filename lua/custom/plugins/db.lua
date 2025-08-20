@@ -1,12 +1,10 @@
--- lua/plugins/db.lua  (or paste this block alongside your other plugin specs)
 return {
-
-  -- SQL treesitter (nice highlighting for psql)
+  -- SQL treesitter
   {
     'nvim-treesitter/nvim-treesitter',
     opts = function(_, opts)
       opts.ensure_installed = opts.ensure_installed or {}
-      for _, lang in ipairs { 'sql' } do -- only "sql", no "pgsql"
+      for _, lang in ipairs { 'sql' } do
         if not vim.tbl_contains(opts.ensure_installed, lang) then
           table.insert(opts.ensure_installed, lang)
         end
@@ -22,25 +20,23 @@ return {
     dependencies = {
       { 'kristijanhusak/vim-dadbod-ui', lazy = true },
       { 'kristijanhusak/vim-dadbod-completion', ft = { 'sql', 'mysql', 'plsql', 'pgsql' } },
-      -- optional: load .env so DB URLs can live there
       { 'tpope/vim-dotenv', lazy = true },
     },
-    init = function()
-      -- nvim-dadbod-ui options (tweak to taste)
+
+    -- ✨ move everything from init -> config so it doesn't touch other buffers at startup
+    config = function()
+      -- nvim-dadbod-ui options
       vim.g.db_ui_use_nerd_fonts = 1
       vim.g.db_ui_winwidth = 35
       vim.g.db_ui_save_location = vim.fn.stdpath 'data' .. '/db_ui'
 
-      -- Named connections (pick up from env so you don't commit secrets)
-      -- Put these in your shell env or a project .env:
-      --   PG_DEV_URL='postgresql://user:pass@localhost:5432/mydb?sslmode=disable'
-      --   PG_PROD_URL='postgresql://user:pass@host:5432/proddb'
+      -- Named connections via env
       vim.g.dbs = {
         dev = os.getenv 'PG_DEV_URL',
         prod = os.getenv 'PG_PROD_URL',
       }
 
-      -- nvim-cmp source for dadbod (buffer-local when editing SQL)
+      -- Dadbod completion only for SQL buffers
       vim.api.nvim_create_autocmd('FileType', {
         pattern = { 'sql', 'mysql', 'plsql', 'pgsql' },
         callback = function()
@@ -57,11 +53,22 @@ return {
         end,
       })
 
-      -- Make *.psql / *.sql detected as sql for completion/highlight
-      vim.filetype.add {
-        extension = { psql = 'sql' },
-      }
+      -- Detect *.psql as sql
+      vim.filetype.add { extension = { psql = 'sql' } }
+
+      -- 🔒 safety guard: if anything marks Oil buffers readonly/nomodifiable, flip it back
+      vim.api.nvim_create_autocmd('FileType', {
+        pattern = 'oil',
+        callback = function()
+          vim.schedule(function()
+            vim.bo.readonly = false
+            vim.bo.modifiable = true
+          end)
+        end,
+        desc = 'Ensure Oil buffers stay writable',
+      })
     end,
+
     keys = {
       { '<leader>Du', '<cmd>DBUIToggle<cr>', desc = 'DB UI: Toggle' },
       { '<leader>Df', '<cmd>DBUIFindBuffer<cr>', desc = 'DB UI: Find Buffer' },

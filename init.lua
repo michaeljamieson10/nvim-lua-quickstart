@@ -271,6 +271,13 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'oil',
+  callback = function()
+    vim.bo.fileformat = 'unix'
+  end,
+})
+
 -- [[ Configure and install plugins ]]
 --
 --  To check the current status of your plugins, run
@@ -280,6 +287,7 @@ vim.opt.rtp:prepend(lazypath)
 --
 --  To update plugins you can run
 --    :Lazy update
+--
 --
 --
 vim.api.nvim_create_autocmd('FileType', {
@@ -382,21 +390,22 @@ require('lazy').setup({
     },
   },
   {
-    'stevearc/oil.nvim', -- Plugin repo
-    cmd = { 'Oil' }, -- Lazy load for Oil commands
+    'stevearc/oil.nvim',
+    ---@module 'oil'
+    ---@type oil.SetupOpts
+    opts = {},
+    -- Optional dependencies
+    dependencies = { { 'echasnovski/mini.icons', opts = {} } },
+    skip_confirm_for_simple_edits = true,
+    delete_to_trash = true,
     keys = {
       { '<leader>o', ':Oil<CR>', desc = 'Open Oil File Explorer' }, -- Key mapping
 
       { '-', '<CMD>Oil<CR>', desc = 'Open parent directory' }, -- Key mapping
     },
-    config = function()
-      require('oil').setup {
-        -- Optional: Customize oil.nvim behavior here
-        view_options = {
-          show_hidden = true, -- Show hidden files
-        },
-      }
-    end,
+    -- dependencies = { "nvim-tree/nvim-web-devicons" }, -- use if you prefer nvim-web-devicons
+    -- Lazy loading is not recommended because it is very tricky to make it work correctly in all situations.
+    lazy = false,
   },
   {
     'sindrets/diffview.nvim',
