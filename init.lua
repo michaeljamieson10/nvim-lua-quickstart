@@ -302,7 +302,6 @@ vim.api.nvim_create_autocmd('FileType', {
 require('lazy').setup({
 
   -- in your lazy.nvim plugin list
-
   {
     'epwalsh/obsidian.nvim',
     version = '*', -- latest release
@@ -858,6 +857,29 @@ require('lazy').setup({
       --   vim.diagnostic.config { signs = { text = diagnostic_signs } }
       -- end
 
+      -- Put this somewhere after your LSP setup
+
+      -- Toggle diagnostics (inline + signs)
+      local diagnostics_active = true
+
+      vim.keymap.set('n', '<leader>td', function()
+        diagnostics_active = not diagnostics_active
+        if diagnostics_active then
+          vim.diagnostic.config {
+            virtual_text = { prefix = '●' },
+            signs = true,
+            underline = true,
+          }
+          print 'Diagnostics: ON'
+        else
+          vim.diagnostic.config {
+            virtual_text = false,
+            signs = false,
+            underline = false,
+          }
+          print 'Diagnostics: OFF'
+        end
+      end, { desc = '[T]oggle [D]iagnostics' })
       -- LSP servers and clients are able to communicate to each other what features they support.
       --  By default, Neovim doesn't support everything that is in the LSP specification.
       --  When you add nvim-cmp, luasnip, etc. Neovim now has *more* capabilities.
