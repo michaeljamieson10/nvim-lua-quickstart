@@ -132,7 +132,7 @@ vim.opt.smartcase = true
 vim.opt.signcolumn = 'yes'
 
 -- Decrease update time
-vim.opt.updatetime = 250
+vim.opt.updatetime = 1000
 
 -- Decrease mapped sequence wait time
 -- Displays which-key popup sooner
@@ -300,6 +300,53 @@ vim.api.nvim_create_autocmd('FileType', {
 })
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup({
+
+  -- Plain-English TS errors
+  {
+    'dmmulroy/ts-error-translator.nvim',
+    ft = { 'typescript', 'typescriptreact', 'javascript', 'javascriptreact' },
+    config = function()
+      require('ts-error-translator').setup()
+    end,
+  },
+
+  -- A beautiful diagnostics panel (list of errors, quick jump, etc.)
+  {
+    'folke/trouble.nvim',
+    cmd = 'Trouble',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    opts = {},
+    keys = {
+      { '<leader>xx', '<cmd>Trouble diagnostics toggle<cr>', desc = 'Trouble: Toggle workspace diagnostics' },
+      { '<leader>xb', '<cmd>Trouble diagnostics toggle filter.buf=0<cr>', desc = 'Trouble: Buffer diagnostics' },
+      { '<leader>xs', '<cmd>Trouble symbols toggle win.position=right<cr>', desc = 'Trouble: Symbols' },
+    },
+  },
+
+  -- Show multi-line diagnostics above the code (great for long TS messages)
+  {
+    'maan2003/lsp_lines.nvim',
+    event = 'VeryLazy',
+    config = function()
+      require('lsp_lines').setup()
+      -- default to inline text; toggle to lsp_lines with <leader>tl
+      vim.diagnostic.config { virtual_text = { prefix = '●' } }
+    end,
+  },
+
+  -- Nice statusline (looks great in interviews)
+  {
+    'nvim-lualine/lualine.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    opts = {
+      options = {
+        theme = 'gruvbox',
+        icons_enabled = vim.g.have_nerd_font, -- set to true if you install a Nerd Font
+        section_separators = { left = '', right = '' },
+        component_separators = { left = '', right = '' },
+      },
+    },
+  },
 
   -- in your lazy.nvim plugin list
   {
@@ -658,7 +705,65 @@ require('lazy').setup({
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
 
-      -- See `:help telescope.builtin`
+      -- make colors pop
+      vim.opt.termguicolors = true
+
+      -- pretty borders for LSP hovers/signatures/diagnostic floats
+      local _border = 'rounded'
+      local orig = vim.lsp.util.open_floating_preview
+      function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
+        opts = opts or {}
+        opts.border = opts.border or _border
+        return orig(contents, syntax, opts, ...)
+      end
+
+      -- tuned diagnostics
+      vim.diagnostic.config {
+        severity_sort = true,
+        update_in_insert = false,
+        underline = true,
+        signs = true,
+        virtual_text = { prefix = '●', spacing = 1, source = 'if_many' },
+        float = { border = 'rounded', source = 'if_many', focusable = false },
+      }
+
+      -- Only show diagnostic hover in NORMAL mode + toggleable
+      local diag_hover_grp = vim.api.nvim_create_augroup('diag_hover_float', { clear = true })
+      local diag_hover_enabled = true
+
+      local function enable_diag_hover()
+        vim.api.nvim_create_autocmd('CursorHold', { -- no CursorHoldI
+          group = diag_hover_grp,
+          callback = function()
+            -- show only in normal-mode family (n, no, niI, etc.), and not in terminals
+            local mode = vim.api.nvim_get_mode().mode
+            if mode:sub(1, 1) ~= 'n' or vim.bo.buftype == 'terminal' then
+              return
+            end
+            vim.diagnostic.open_float(nil, { border = 'rounded', focusable = false, scope = 'cursor' })
+          end,
+        })
+        diag_hover_enabled = true
+      end
+
+      local function disable_diag_hover()
+        vim.api.nvim_clear_autocmds { group = diag_hover_grp }
+        diag_hover_enabled = false
+      end
+
+      -- start enabled
+      enable_diag_hover()
+
+      -- Toggle: <leader>tf
+      vim.keymap.set('n', '<leader>tf', function()
+        if diag_hover_enabled then
+          disable_diag_hover()
+          print 'Diagnostic hover: OFF'
+        else
+          enable_diag_hover()
+          print 'Diagnostic hover: ON'
+        end
+      end, { desc = '[T]oggle diagnostic [F]loat' }) -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
       vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
