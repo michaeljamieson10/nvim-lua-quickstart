@@ -439,11 +439,15 @@ require('lazy').setup({
     'stevearc/oil.nvim',
     ---@module 'oil'
     ---@type oil.SetupOpts
-    opts = {},
+    opts = {
+      skip_confirm_for_simple_edits = true,
+      delete_to_trash = true,
+      view_options = {
+        show_hidden = true,
+      },
+    },
     -- Optional dependencies
     dependencies = { { 'echasnovski/mini.icons', opts = {} } },
-    skip_confirm_for_simple_edits = true,
-    delete_to_trash = true,
     keys = {
       { '<leader>o', ':Oil<CR>', desc = 'Open Oil File Explorer' }, -- Key mapping
 
