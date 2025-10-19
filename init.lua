@@ -349,6 +349,10 @@ require('lazy').setup({
   },
 
   {
+    'ThePrimeagen/vim-be-good',
+    cmd = 'VimBeGood',
+  },
+  {
     'kdheepak/lazygit.nvim',
     cmd = 'LazyGit',
     keys = {
