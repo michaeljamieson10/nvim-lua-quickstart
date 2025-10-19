@@ -348,6 +348,34 @@ require('lazy').setup({
     },
   },
 
+  -- in your lazy.nvim plugin list
+  {
+    'epwalsh/obsidian.nvim',
+    version = '*', -- latest release
+    ft = 'markdown',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    opts = {
+      workspaces = {
+        {
+          name = 'no-vault',
+          path = function()
+            -- use the folder of the file you're editing
+            return assert(vim.fs.dirname(vim.api.nvim_buf_get_name(0)))
+          end,
+          overrides = {
+            notes_subdir = vim.NIL, -- no subdir, notes stay where they are
+            new_notes_location = 'current_dir',
+            templates = { folder = vim.NIL }, -- no templates folder
+            disable_frontmatter = true,
+          },
+        },
+      },
+      completion = { nvim_cmp = true, min_chars = 2 },
+    },
+    config = function(_, opts)
+      require('obsidian').setup(opts)
+    end,
+  },
   {
     'ThePrimeagen/vim-be-good',
     cmd = 'VimBeGood',
