@@ -8,14 +8,21 @@
 local check_version = function()
   local verstr = tostring(vim.version())
   if not vim.version.ge then
-    vim.health.error(string.format("Neovim out of date: '%s'. Upgrade to latest stable or nightly", verstr))
+    vim.health.error(string.format("Neovim out of date: '%s'. Upgrade to the latest stable release.", verstr))
     return
   end
 
-  if vim.version.ge(vim.version(), '0.10-dev') then
+  local minimum_version = { major = 0, minor = 9, patch = 0 }
+  local version = vim.version()
+
+  if version and version.prerelease then
+    vim.health.warn(string.format("Neovim prerelease detected: '%s'. Kickstart targets the latest stable release.", verstr))
+  end
+
+  if vim.version.ge(version, minimum_version) then
     vim.health.ok(string.format("Neovim version is: '%s'", verstr))
   else
-    vim.health.error(string.format("Neovim out of date: '%s'. Upgrade to latest stable or nightly", verstr))
+    vim.health.error(string.format("Neovim out of date: '%s'. Upgrade to the latest stable release.", verstr))
   end
 end
 

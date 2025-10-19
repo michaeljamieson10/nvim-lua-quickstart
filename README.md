@@ -15,9 +15,9 @@ A starting point for Neovim that is:
 ### Install Neovim
 
 Kickstart.nvim targets *only* the latest
-['stable'](https://github.com/neovim/neovim/releases/tag/stable) and latest
-['nightly'](https://github.com/neovim/neovim/releases/tag/nightly) of Neovim.
-If you are experiencing issues, please make sure you have the latest versions.
+['stable'](https://github.com/neovim/neovim/releases/tag/stable) release of Neovim.
+Nightly builds may work, but they are not required or officially tested.
+If you are experiencing issues, please make sure you have the latest stable version.
 
 ### Install External Dependencies
 
@@ -230,4 +230,3 @@ sudo dnf install -y gcc make git ripgrep fd-find unzip neovim
 sudo pacman -S --noconfirm --needed gcc make git ripgrep fd unzip neovim
 ```
 </details>
-
