@@ -1,15 +1,5 @@
-return {
-  'tpope/vim-sleuth',
-  { 'tpope/vim-obsession', lazy = false },
-  { import = 'custom.plugins.ai' },
-  { import = 'custom.plugins.commenting' },
-  { import = 'custom.plugins.completion' },
-  { import = 'custom.plugins.diagnostics' },
-  { import = 'custom.plugins.filetools' },
-  { import = 'custom.plugins.git' },
-  { import = 'custom.plugins.lsp' },
-  { import = 'custom.plugins.productivity' },
-  { import = 'custom.plugins.telescope' },
-  { import = 'custom.plugins.treesitter' },
-  { import = 'custom.plugins.ui' },
-}
+-- You can add your own plugins here or in other files in this directory!
+--  I promise not to create any merge conflicts in this directory :)
+--
+-- See the kickstart.nvim README for more information
+return {}
