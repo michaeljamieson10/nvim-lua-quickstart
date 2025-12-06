@@ -546,7 +546,35 @@ require('lazy').setup({
       },
     },
   },
-
+  {
+    'rest-nvim/rest.nvim',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      {
+        'nvim-treesitter/nvim-treesitter',
+        opts = function(_, opts)
+          opts.ensure_installed = opts.ensure_installed or {}
+          table.insert(opts.ensure_installed, 'http')
+        end,
+      },
+    },
+    opts = {
+      request = { skip_ssl_verification = false },
+      response = { hooks = { decode_url = true, format = true } },
+      env = { enable = true, pattern = '.*%.env.*' },
+      highlight = { enable = true, timeout = 150 },
+    },
+    config = function(_, opts)
+      require('rest-nvim').setup(opts)
+    end,
+    keys = function()
+      return {
+        { '<leader>rr', '<cmd>Rest run<cr>', desc = 'REST Run request under cursor' },
+        { '<leader>rp', '<cmd>Rest curl yank<cr>', desc = 'REST Copy cURL command' },
+        { '<leader>rl', '<cmd>Rest last<cr>', desc = 'REST Re-run last request' },
+      }
+    end,
+  },
   -- NOTE: Plugins can specify dependencies.
   --
   -- The dependencies are proper plugin specifications as well - anything
@@ -927,11 +955,7 @@ require('lazy').setup({
       --  By default, Neovim doesn't support everything that is in the LSP specification.
       --  When you add nvim-cmp, luasnip, etc. Neovim now has *more* capabilities.
       --  So, we create new capabilities with nvim cmp, and then broadcast that to the servers.
-      local capabilities = vim.tbl_deep_extend(
-        'force',
-        vim.lsp.protocol.make_client_capabilities(),
-        require('cmp_nvim_lsp').default_capabilities()
-      )
+      local capabilities = vim.tbl_deep_extend('force', vim.lsp.protocol.make_client_capabilities(), require('cmp_nvim_lsp').default_capabilities())
 
       vim.lsp.config('*', {
         capabilities = capabilities,
@@ -1171,7 +1195,7 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'http' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       ignore_install = { 'csv' },

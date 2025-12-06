@@ -1,0 +1,20 @@
+@baseUrl = https://jsonplaceholder.typicode.com
+# Optional token from .env: API_TOKEN=secret
+@token = {{API_TOKEN}}
+
+### List posts
+GET {{baseUrl}}/posts
+
+### Get a post
+GET {{baseUrl}}/posts/1
+
+### Create a post
+POST {{baseUrl}}/posts
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "from rest.nvim",
+  "body": "Hello from Neovim REST client.",
+  "userId": 42
+}
