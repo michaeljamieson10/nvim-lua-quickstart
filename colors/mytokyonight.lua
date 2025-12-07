@@ -1,8 +1,8 @@
 -- Tokyonight-inspired custom colorscheme
 local p = {
-  bg = '#1a1b26',
-  bg_dark = '#16161e',
-  bg_highlight = '#292e42',
+  bg = '#161827',
+  bg_dark = '#12131d',
+  bg_highlight = '#252b3b',
   fg = '#c0caf5',
   fg_dark = '#a9b1d6',
   fg_gutter = '#3b4261',
