@@ -93,7 +93,8 @@ P.S. You can delete this when you're done too. It's your config now! :)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+-- Set to true if you have a Nerd Font installed and selected in the terminal
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -106,6 +107,8 @@ vim.opt.number = true
 vim.opt.relativenumber = true
 
 vim.opt.mouse = 'a'
+-- GUI font (ignored in terminal). Requires JetBrainsMono Nerd Font installed on the system.
+vim.opt.guifont = 'JetBrainsMono Nerd Font:h12'
 
 -- Don't show the mode, since it's already in the status line
 vim.opt.showmode = false
@@ -349,7 +352,7 @@ require('lazy').setup({
     dependencies = { 'nvim-tree/nvim-web-devicons' },
     opts = {
       options = {
-        theme = 'gruvbox',
+        theme = 'auto', -- follow current colorscheme (Catppuccin)
         icons_enabled = vim.g.have_nerd_font, -- set to true if you install a Nerd Font
         section_separators = { left = '', right = '' },
         component_separators = { left = '', right = '' },
@@ -1168,12 +1171,21 @@ require('lazy').setup({
     end,
   },
 
-  { -- Tokyonight-inspired custom colorscheme (see colors/mytokyonight.lua)
-    'folke/tokyonight.nvim',
+  { -- Catppuccin colorscheme (Mocha)
+    'catppuccin/nvim',
+    name = 'catppuccin',
     priority = 1000, -- Load before other plugins
     config = function()
+      require('catppuccin').setup {
+        flavour = 'mocha',
+        integrations = {
+          treesitter = true,
+          which_key = true,
+          lsp_trouble = true,
+        },
+      }
       vim.opt.background = 'dark'
-      vim.cmd.colorscheme 'mytokyonight'
+      vim.cmd.colorscheme 'catppuccin-mocha'
     end,
   },
   -- Highlight todo, notes, etc in comments
