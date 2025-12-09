@@ -18,3 +18,13 @@ Authorization: Bearer {{token}}
   "body": "Hello from Neovim REST client.",
   "userId": 42
 }
+
+### Query SpaceX GraphQL API
+GRAPHQL https://api.spacex.land/graphql/
+
+query {
+  company {
+    name
+    summary
+  }
+}

@@ -566,7 +566,11 @@ require('lazy').setup({
         'nvim-treesitter/nvim-treesitter',
         opts = function(_, opts)
           opts.ensure_installed = opts.ensure_installed or {}
-          table.insert(opts.ensure_installed, 'http')
+          for _, lang in ipairs { 'http', 'graphql' } do
+            if not vim.tbl_contains(opts.ensure_installed, lang) then
+              table.insert(opts.ensure_installed, lang)
+            end
+          end
         end,
       },
     },
@@ -586,6 +590,10 @@ require('lazy').setup({
         { '<leader>rl', '<cmd>Rest last<cr>', desc = 'REST Re-run last request' },
       }
     end,
+  },
+  {
+    'jparise/vim-graphql',
+    ft = { 'graphql', 'gql', 'graphqls' },
   },
   -- NOTE: Plugins can specify dependencies.
   --
@@ -1197,7 +1205,7 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'http' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'http', 'graphql' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       ignore_install = { 'csv' },
