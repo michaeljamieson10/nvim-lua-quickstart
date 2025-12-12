@@ -36,7 +36,8 @@ return {
           opt.breakindent = true
 
           -- Align comment operators with the required Liquid block form
-          vim.bo[event.buf].commentstring = '{%%- comment %%} %s {%%- endcomment %%}'
+          -- For block wraps (e.g., Visual mode), place opening/closing on their own lines
+          vim.bo[event.buf].commentstring = '{%- comment -%}\n%s\n{%- endcomment -%}'
 
           -- Preserve readable spacing while avoiding useless trailing blanks
           vim.api.nvim_create_autocmd('BufWritePre', {
@@ -61,45 +62,45 @@ return {
       local i = ls.insert_node
 
       ls.add_snippets('liquid', {
-        s('lassign', fmt('{%%- assign {name} = {value} %%}', {
+        s('lassign', fmt('{{%- assign {name} = {value} -%}}', {
           name = i(1, 'var_name'),
           value = i(2, 'value'),
         })),
         s('lif', fmt([[
-{%%- if {cond} -%%}
+{{%- if {cond} -%}}
     {body}
-{%%- endif -%%}
+{{%- endif -%}}
 ]], {
           cond = i(1, 'condition'),
           body = i(0, 'body'),
         })),
         s('lfor', fmt([[
-{%%- for {item} in {collection} -%%}
+{{%- for {item} in {collection} -%}}
     {body}
-{%%- endfor -%%}
+{{%- endfor -%}}
 ]], {
           item = i(1, 'item'),
           collection = i(2, 'collection'),
           body = i(0, 'body'),
         })),
         s('lcapture', fmt([[
-{%%- captureJson {name} -%%}
+{{%- captureJson {name} -%}}
     {body}
-{%%- endcaptureJson -%%}
+{{%- endcaptureJson -%}}
 ]], {
           name = i(1, 'var_name'),
           body = i(0, '"key": "value"'),
         })),
-        s('lnewarr', fmt('{%%- newArray {path} -%%}', {
+        s('lnewarr', fmt('{{%- newArray {path} -%}}', {
           path = i(1, 'path.to.value'),
         })),
-        s('lnewobj', fmt('{%%- newObject {name} -%%}', {
+        s('lnewobj', fmt('{{%- newObject {name} -%}}', {
           name = i(1, 'varName'),
         })),
         s('lcomment', fmt([[
-{%%- comment -%%}
+{{%- comment -%}}
     {body}
-{%%- endcomment -%%}
+{{%- endcomment -%}}
 ]], {
           body = i(0, 'details'),
         })),
