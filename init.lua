@@ -112,7 +112,7 @@ vim.opt.guifont = 'JetBrainsMono Nerd Font:h12'
 
 -- Don't show the mode, since it's already in the status line
 vim.opt.showmode = false
-
+vim.opt.title = false
 -- Sync clipboard between OS and Neovim.
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
 --  Remove this option if you want your OS clipboard to remain independent.
@@ -172,10 +172,11 @@ vim.opt.foldlevelstart = 99
 
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
+vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, { desc = 'Go to implementation' })
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 vim.keymap.set('n', '<leader>lg', function()
-  vim.cmd('tabnew | term lazygit')
-  vim.cmd('startinsert')
+  vim.cmd 'tabnew | term lazygit'
+  vim.cmd 'startinsert'
 end, { desc = 'Open Lazygit (tab terminal)' })
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
@@ -574,6 +575,7 @@ require('lazy').setup({
         end,
       },
     },
+    ft = { 'http' },
     opts = {
       request = { skip_ssl_verification = false },
       response = { hooks = { decode_url = true, format = true } },
@@ -582,6 +584,13 @@ require('lazy').setup({
     },
     config = function(_, opts)
       require('rest-nvim').setup(opts)
+      vim.api.nvim_create_autocmd('FileType', {
+        pattern = 'http',
+        callback = function(event)
+          vim.b[event.buf]._rest_nvim_count = vim.b[event.buf]._rest_nvim_count or 1
+        end,
+        group = vim.api.nvim_create_augroup('rest_nvim_buffer_defaults', { clear = true }),
+      })
     end,
     keys = function()
       return {

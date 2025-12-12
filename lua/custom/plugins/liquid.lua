@@ -25,15 +25,13 @@ return {
       vim.api.nvim_create_autocmd('FileType', {
         group = liquid_group,
         pattern = 'liquid',
-        desc = 'Company Liquid style: 4-space indent, 80 cols, trimmed block comments',
+        desc = 'Company Liquid style: 4-space indent and whitespace hygiene',
         callback = function(event)
           local opt = vim.opt_local
           opt.expandtab = true
           opt.tabstop = 4
           opt.shiftwidth = 4
           opt.softtabstop = 4
-          opt.textwidth = 80
-          opt.colorcolumn = '+1'
           opt.wrap = false
           opt.breakindent = true
 
