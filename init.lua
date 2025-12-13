@@ -200,10 +200,6 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 -- vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
 -- Set leader key (if not already set)
 -- Resize buffers using leader key
-vim.keymap.set('n', '<leader>k', ':resize +15<CR>', { noremap = true, silent = true }) -- Increase height
-vim.keymap.set('n', '<leader>j', ':resize -15<CR>', { noremap = true, silent = true }) -- Decrease height
-vim.keymap.set('n', '<leader>h', ':vertical resize -15<CR>', { noremap = true, silent = true }) -- Decrease width
-vim.keymap.set('n', '<leader>l', ':vertical resize +15<CR>', { noremap = true, silent = true }) -- Increase width
 -- Map <leader>lt to :Leet test
 vim.keymap.set('n', '<leader>ls', ':Leet submit<CR>', { noremap = true, silent = true })
 vim.keymap.set('n', '<leader>lt', ':Leet test<CR>', { noremap = true, silent = true })
@@ -249,16 +245,38 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+local function normalized_buf_path()
+  local name = vim.api.nvim_buf_get_name(0)
+  if name == '' then
+    return ''
+  end
+  if name:match '^oil://' then
+    name = name:gsub('^oil://', 'file://')
+    name = vim.uri_to_fname(name)
+  end
+  local path = vim.fs.normalize(name)
+  local home = vim.loop.os_homedir()
+  if home and path:sub(1, #home + 1) == home .. '/' then
+    path = path:sub(#home + 2) -- strip "/home/user/"
+  end
+  return path
+end
+
 vim.keymap.set('n', '<leader>yd', function()
-  vim.fn.setreg('+', vim.fn.expand '%:p:h')
+  local path = normalized_buf_path()
+  if path == '' then
+    return
+  end
+  vim.fn.setreg('+', vim.fn.fnamemodify(path, ':h'))
 end, { desc = 'Yank file’s directory to clipboard' })
 vim.keymap.set('n', '<leader>jc', function()
   vim.cmd 'split | terminal curl -s https://jsonplaceholder.typicode.com/posts/1'
 end, { desc = 'Fetch JSON Placeholder Post' })
 vim.keymap.set('n', '<leader>yp', function()
-  local dir = vim.fn.expand '%:p:h' -- directory path
-  local file = vim.fn.expand '%:t' -- just the file name
-  local path = dir .. '/' .. file
+  local path = normalized_buf_path()
+  if path == '' then
+    return
+  end
   vim.fn.setreg('+', path)
   print('Copied full path: ' .. path)
 end, { desc = 'Yank file’s directory + name' })
