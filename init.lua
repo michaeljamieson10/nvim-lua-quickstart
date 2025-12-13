@@ -428,20 +428,21 @@ require('lazy').setup({
       end
 
       local function path_from_startup()
-        local root = vim.g.startup_cwd or vim.loop.cwd()
-        local name = vim.api.nvim_buf_get_name(0)
-        if name == '' then
+        local path = normalized_buf_path and normalized_buf_path() or ''
+        if path == '' then
+          local root = vim.g.startup_cwd or vim.loop.cwd()
           return vim.fn.fnamemodify(root, ':t')
         end
-        if name:match '^oil://' then
-          name = name:gsub('^oil://', 'file://')
-          name = vim.uri_to_fname(name)
-        end
-        local path = vim.fs.normalize(name)
+        path = vim.fs.normalize(path)
         if vim.fn.isdirectory(path) == 1 then
           return vim.fn.fnamemodify(path, ':t') .. '/'
         end
-        return vim.fn.fnamemodify(path, ':t')
+        local fname = vim.fn.fnamemodify(path, ':t')
+        local parent = vim.fn.fnamemodify(path, ':h:t')
+        if parent ~= '' and parent ~= '.' then
+          return parent .. '/' .. fname
+        end
+        return fname
       end
 
       return {
