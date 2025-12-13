@@ -92,6 +92,8 @@ P.S. You can delete this when you're done too. It's your config now! :)
 
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
+-- Use a dedicated virtualenv for Neovim's Python provider (keeps it separate from project envs/LSP)
+vim.g.python3_host_prog = vim.fn.expand('~/.venvs/nvim/bin/python')
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
@@ -999,6 +1001,8 @@ require('lazy').setup({
         -- gopls = {},
         omnisharp = {},
         pyright = {},
+        -- Ruff handles linting & import fixes; pair with Pyright for type checking
+        ruff = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs.
         ts_ls = {
@@ -1044,6 +1048,8 @@ require('lazy').setup({
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
         'csharpier',
+        'isort',
+        'black',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -1214,7 +1220,7 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'http', 'graphql' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'python', 'query', 'vim', 'vimdoc', 'http', 'graphql' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       ignore_install = { 'csv' },

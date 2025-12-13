@@ -100,6 +100,11 @@ Start Neovim
 nvim
 ```
 
+### Python provider (Neovim)
+
+- A dedicated env is set at `~/.venvs/nvim` with `pynvim`, referenced via `vim.g.python3_host_prog`.
+- This env is only for Neovim's Python provider, not for project virtualenvs or language servers like `pylsp`.
+
 That's it! Lazy will install all the plugins you have. Use `:Lazy` to view
 current plugin status. Hit `q` to close the window.
 
