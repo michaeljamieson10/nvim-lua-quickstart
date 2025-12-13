@@ -97,6 +97,8 @@ vim.g.python3_host_prog = vim.fn.expand('~/.venvs/nvim/bin/python')
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
+-- Capture the directory Neovim was started in (used for statusline display)
+vim.g.startup_cwd = vim.fn.getcwd(-1, -1)
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -260,6 +262,49 @@ vim.keymap.set('n', '<leader>yp', function()
   vim.fn.setreg('+', path)
   print('Copied full path: ' .. path)
 end, { desc = 'Yank file’s directory + name' })
+
+-- Quick popup showing the current file path; auto-closes after 2s or with 'q'
+local function show_file_path_popup()
+  local name = vim.api.nvim_buf_get_name(0)
+  if name == '' then
+    name = '[No Name]'
+  elseif name:match '^oil://' then
+    name = name:gsub('^oil://', 'file://')
+    name = vim.uri_to_fname(name)
+  end
+  local path = vim.fs.normalize(name)
+  local home = vim.loop.os_homedir()
+  if home and path:sub(1, #home + 1) == home .. '/' then
+    path = path:sub(#home + 2) -- strip "/home/user/"
+  end
+
+  local buf = vim.api.nvim_create_buf(false, true)
+  local display_width = vim.fn.strdisplaywidth(path)
+  local max_width = math.max(10, vim.o.columns - 4)
+  local width = math.min(max_width, math.max(10, display_width + 2))
+  local opts = {
+    style = 'minimal',
+    relative = 'editor',
+    width = width,
+    height = 1,
+    row = 2,
+    col = math.max(0, math.floor((vim.o.columns - width) / 2)),
+    border = 'rounded',
+  }
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, { path })
+  vim.api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
+  vim.api.nvim_buf_set_option(buf, 'modifiable', false)
+  local win = vim.api.nvim_open_win(buf, false, opts)
+  vim.keymap.set('n', 'q', '<cmd>close<CR>', { buffer = buf, silent = true, nowait = true })
+  vim.defer_fn(function()
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_close(win, true)
+    end
+  end, 2500)
+end
+
+vim.api.nvim_create_user_command('ShowFilePath', show_file_path_popup, { desc = 'Popup current file path' })
+vim.keymap.set('n', '<leader>fp', show_file_path_popup, { desc = 'Show current file path popup' })
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -353,14 +398,51 @@ require('lazy').setup({
   {
     'nvim-lualine/lualine.nvim',
     dependencies = { 'nvim-tree/nvim-web-devicons' },
-    opts = {
-      options = {
-        theme = 'auto', -- follow current colorscheme (Catppuccin)
-        icons_enabled = vim.g.have_nerd_font, -- set to true if you install a Nerd Font
-        section_separators = { left = '', right = '' },
-        component_separators = { left = '', right = '' },
-      },
-    },
+    opts = function()
+      local function startup_root_name()
+        local root = vim.g.startup_cwd or vim.loop.cwd()
+        return vim.fn.fnamemodify(root, ':t')
+      end
+
+      local function startup_root_path()
+        local root = vim.g.startup_cwd or vim.loop.cwd()
+        return vim.fn.fnamemodify(root, ':~')
+      end
+
+      local function path_from_startup()
+        local root = vim.g.startup_cwd or vim.loop.cwd()
+        local name = vim.api.nvim_buf_get_name(0)
+        if name == '' then
+          return vim.fn.fnamemodify(root, ':t')
+        end
+        if name:match '^oil://' then
+          name = name:gsub('^oil://', 'file://')
+          name = vim.uri_to_fname(name)
+        end
+        local path = vim.fs.normalize(name)
+        if vim.fn.isdirectory(path) == 1 then
+          return vim.fn.fnamemodify(path, ':t') .. '/'
+        end
+        return vim.fn.fnamemodify(path, ':t')
+      end
+
+      return {
+        options = {
+          theme = 'auto', -- follow current colorscheme (Catppuccin)
+          icons_enabled = vim.g.have_nerd_font, -- set to true if you install a Nerd Font
+          section_separators = { left = '', right = '' },
+          component_separators = { left = '', right = '' },
+        },
+        sections = {
+          lualine_a = { 'mode' },
+          lualine_b = { 'branch', 'diff', 'diagnostics' },
+          lualine_c = { path_from_startup },
+          lualine_x = { startup_root_name, 'filetype' },
+          lualine_y = { 'progress' },
+          lualine_z = { 'location' },
+        },
+      }
+    end,
   },
 
   {
