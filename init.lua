@@ -697,7 +697,7 @@ require('lazy').setup({
     end,
     keys = function()
       return {
-        { '<leader>rr', '<cmd>Rest run<cr>', desc = 'REST Run request under cursor' },
+        { '<leader>rr', '<cmd>BrunoRun<cr>', desc = 'Bruno Run request' },
         { '<leader>rp', '<cmd>Rest curl yank<cr>', desc = 'REST Copy cURL command' },
         { '<leader>rl', '<cmd>Rest last<cr>', desc = 'REST Re-run last request' },
       }
