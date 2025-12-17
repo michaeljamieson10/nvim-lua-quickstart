@@ -412,6 +412,84 @@ require('lazy').setup({
     end,
   },
 
+  -- Beautiful startup dashboard ("loading screen")
+  {
+    'goolord/alpha-nvim',
+    event = 'VimEnter',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    config = function()
+      -- Don't show the dashboard if Neovim was started with files or stdin.
+      if vim.fn.argc() > 0 then
+        return
+      end
+      if vim.fn.line2byte('$') ~= -1 then
+        return
+      end
+
+      local alpha = require 'alpha'
+      local dashboard = require 'alpha.themes.dashboard'
+
+      dashboard.section.header.val = {
+        '███╗   ██╗███████╗ ██████╗ ██╗   ██╗██╗███╗   ███╗',
+        '████╗  ██║██╔════╝██╔═══██╗██║   ██║██║████╗ ████║',
+        '██╔██╗ ██║█████╗  ██║   ██║██║   ██║██║██╔████╔██║',
+        '██║╚██╗██║██╔══╝  ██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║',
+        '██║ ╚████║███████╗╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║',
+        '╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝',
+      }
+
+      dashboard.section.buttons.val = {
+        dashboard.button('f', '  Find file', '<cmd>Telescope find_files<CR>'),
+        dashboard.button('g', '  Live grep', '<cmd>Telescope live_grep<CR>'),
+        dashboard.button('r', '  Recent files', '<cmd>Telescope oldfiles<CR>'),
+        dashboard.button('n', '  New file', '<cmd>ene | startinsert<CR>'),
+        dashboard.button('c', '  Edit config', '<cmd>edit ' .. vim.fn.stdpath 'config' .. '/init.lua<CR>'),
+        dashboard.button('l', '󰒲  Lazy', '<cmd>Lazy<CR>'),
+        dashboard.button('q', '󰅚  Quit', '<cmd>qa<CR>'),
+      }
+
+      dashboard.section.footer.val = function()
+        local ok, lazy = pcall(require, 'lazy')
+        if not ok then
+          return ''
+        end
+        local stats = lazy.stats()
+        local ms = math.floor((stats.startuptime or 0) * 100 + 0.5) / 100
+        return ('󱐋 Loaded %d/%d plugins in %sms'):format(stats.loaded or 0, stats.count or 0, ms)
+      end
+
+      dashboard.section.header.opts.hl = 'Type'
+      dashboard.section.buttons.opts.hl = 'Keyword'
+      dashboard.section.footer.opts.hl = 'Comment'
+      dashboard.opts.opts.noautocmd = true
+
+      alpha.setup(dashboard.opts)
+
+      local laststatus = vim.opt.laststatus:get()
+      local showtabline = vim.opt.showtabline:get()
+      vim.api.nvim_create_autocmd('FileType', {
+        pattern = 'alpha',
+        callback = function()
+          vim.opt_local.number = false
+          vim.opt_local.relativenumber = false
+          vim.opt_local.cursorline = false
+          vim.opt_local.signcolumn = 'no'
+          vim.opt.laststatus = 0
+          vim.opt.showtabline = 0
+
+          vim.api.nvim_create_autocmd('BufUnload', {
+            buffer = 0,
+            once = true,
+            callback = function()
+              vim.opt.laststatus = laststatus
+              vim.opt.showtabline = showtabline
+            end,
+          })
+        end,
+      })
+    end,
+  },
+
   -- Nice statusline (looks great in interviews)
   {
     'nvim-lualine/lualine.nvim',
