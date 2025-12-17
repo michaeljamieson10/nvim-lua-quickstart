@@ -59,216 +59,240 @@ return {
       local ls = require 'luasnip'
       local fmt = require('luasnip.extras.fmt').fmt
       local lfmt = function(str, nodes)
-        return fmt(str, nodes, { delimiters = '<>' })
+        return fmt(str, nodes, { delimiters = '<>', repeat_duplicates = true })
       end
       local s = ls.snippet
       local i = ls.insert_node
       local t = ls.text_node
+      local c = ls.choice_node
 
       ls.add_snippets('liquid', {
-        s('lassign', fmt('{{%- assign {name} = {value} -%}}', {
-          name = i(1, 'var_name'),
-          value = i(2, 'value'),
-        })),
-        s('lif', fmt([[
-{{%- if {cond} -%}}
-    {body}
-{{%- endif -%}}
-]], {
-          cond = i(1, 'condition'),
-          body = i(0, 'body'),
-        })),
-        s('lfor', fmt([[
-{{%- for {item} in {collection} -%}}
-    {body}
-{{%- endfor -%}}
-]], {
-          item = i(1, 'item'),
-          collection = i(2, 'collection'),
-          body = i(0, 'body'),
-        })),
-        s('lcapture', fmt([[
-{{%- captureJson {name} -%}}
-    {body}
-{{%- endcaptureJson -%}}
-]], {
-          name = i(1, 'var_name'),
-          body = i(0, '"key": "value"'),
-        })),
-        s('lnewarr', fmt('{{%- newArray {path} -%}}', {
-          path = i(1, 'path.to.value'),
-        })),
-        s('lnewobj', fmt('{{%- newObject {name} -%}}', {
-          name = i(1, 'varName'),
-        })),
-        s('lcomment', fmt([[
-{{%- comment -%}}
-    {body}
-{{%- endcomment -%}}
-]], {
-          body = i(0, 'details'),
-        })),
-        s({ trig = '.assign', wordTrig = false }, lfmt('{%- assign <name> = <value> -%}', {
-          name = i(1, 'var_name'),
-          value = i(2, 'value'),
+        s({ trig = '.assign', wordTrig = false }, lfmt('{%<ltrim> assign <name> = <value> <rtrim>%}', {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          name = i(3, 'var_name'),
+          value = i(4, 'value'),
         })),
         s({ trig = '.capture', wordTrig = false }, lfmt([[
-{%- capture <name> -%}
+{%<ltrim> capture <name> <rtrim>%}
     <body>
-{%- endcapture -%}
+{%<ltrim> endcapture <rtrim>%}
 ]], {
-          name = i(1, 'var_name'),
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          name = i(3, 'var_name'),
           body = i(0, 'body'),
         })),
         s({ trig = '.comment', wordTrig = false }, lfmt([[
-{%- comment -%}
+{%<ltrim> comment <rtrim>%}
     <body>
-{%- endcomment -%}
+{%<ltrim> endcomment <rtrim>%}
 ]], {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
           body = i(0, 'details'),
         })),
         s({ trig = '.if', wordTrig = false }, lfmt([[
-{%- if <cond> -%}
+{%<ltrim> if <cond> <rtrim>%}
     <body>
-{%- endif -%}
+{%<ltrim> endif <rtrim>%}
 ]], {
-          cond = i(1, 'condition'),
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          cond = i(3, 'condition'),
           body = i(0, 'body'),
         })),
-        s({ trig = '.elsif', wordTrig = false }, lfmt('{%- elsif <cond> -%}', {
-          cond = i(1, 'condition'),
+        s({ trig = '.elsif', wordTrig = false }, lfmt('{%<ltrim> elsif <cond> <rtrim>%}', {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          cond = i(3, 'condition'),
         })),
-        s({ trig = '.else', wordTrig = false }, t '{%- else -%}'),
+        s({ trig = '.else', wordTrig = false }, lfmt('{%<ltrim> else <rtrim>%}', {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+        })),
         s({ trig = '.unless', wordTrig = false }, lfmt([[
-{%- unless <cond> -%}
+{%<ltrim> unless <cond> <rtrim>%}
     <body>
-{%- endunless -%}
+{%<ltrim> endunless <rtrim>%}
 ]], {
-          cond = i(1, 'condition'),
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          cond = i(3, 'condition'),
           body = i(0, 'body'),
         })),
         s({ trig = '.case', wordTrig = false }, lfmt([[
-{%- case <expr> -%}
-    {%- when <value> -%}
+{%<ltrim> case <expr> <rtrim>%}
+    {%<ltrim> when <value> <rtrim>%}
         <body>
-{%- endcase -%}
+{%<ltrim> endcase <rtrim>%}
 ]], {
-          expr = i(1, 'expression'),
-          value = i(2, 'value'),
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          expr = i(3, 'expression'),
+          value = i(4, 'value'),
           body = i(0, 'body'),
         })),
-        s({ trig = '.when', wordTrig = false }, lfmt('{%- when <value> -%}', {
-          value = i(1, 'value'),
+        s({ trig = '.when', wordTrig = false }, lfmt('{%<ltrim> when <value> <rtrim>%}', {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          value = i(3, 'value'),
         })),
         s({ trig = '.for', wordTrig = false }, lfmt([[
-{%- for <item> in <collection> -%}
+{%<ltrim> for <item> in <collection> <rtrim>%}
     <body>
-{%- endfor -%}
+{%<ltrim> endfor <rtrim>%}
 ]], {
-          item = i(1, 'item'),
-          collection = i(2, 'collection'),
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          item = i(3, 'item'),
+          collection = i(4, 'collection'),
           body = i(0, 'body'),
         })),
         s({ trig = '.tablerow', wordTrig = false }, lfmt([[
-{%- tablerow <item> in <collection> <params> -%}
+{%<ltrim> tablerow <item> in <collection> <params> <rtrim>%}
     <body>
-{%- endtablerow -%}
+{%<ltrim> endtablerow <rtrim>%}
 ]], {
-          item = i(1, 'item'),
-          collection = i(2, 'collection'),
-          params = i(3, 'cols: 4'),
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          item = i(3, 'item'),
+          collection = i(4, 'collection'),
+          params = i(5, 'cols: 4'),
           body = i(0, 'body'),
         })),
-        s({ trig = '.cycle', wordTrig = false }, lfmt('{%- cycle <values> -%}', {
-          values = i(1, "'one', 'two'"),
+        s({ trig = '.cycle', wordTrig = false }, lfmt('{%<ltrim> cycle <values> <rtrim>%}', {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          values = i(3, "'one', 'two'"),
         })),
-        s({ trig = '.break', wordTrig = false }, t '{%- break -%}'),
-        s({ trig = '.continue', wordTrig = false }, t '{%- continue -%}'),
-        s({ trig = '.increment', wordTrig = false }, lfmt('{%- increment <name> -%}', {
-          name = i(1, 'counter'),
+        s({ trig = '.break', wordTrig = false }, lfmt('{%<ltrim> break <rtrim>%}', {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
         })),
-        s({ trig = '.decrement', wordTrig = false }, lfmt('{%- decrement <name> -%}', {
-          name = i(1, 'counter'),
+        s({ trig = '.continue', wordTrig = false }, lfmt('{%<ltrim> continue <rtrim>%}', {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
         })),
-        s({ trig = '.echo', wordTrig = false }, lfmt('{%- echo <value> -%}', {
-          value = i(1, 'value'),
+        s({ trig = '.increment', wordTrig = false }, lfmt('{%<ltrim> increment <name> <rtrim>%}', {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          name = i(3, 'counter'),
+        })),
+        s({ trig = '.decrement', wordTrig = false }, lfmt('{%<ltrim> decrement <name> <rtrim>%}', {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          name = i(3, 'counter'),
+        })),
+        s({ trig = '.echo', wordTrig = false }, lfmt('{%<ltrim> echo <value> <rtrim>%}', {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          value = i(3, 'value'),
         })),
         s({ trig = '.raw', wordTrig = false }, lfmt([[
-{%- raw -%}
+{%<ltrim> raw <rtrim>%}
     <body>
-{%- endraw -%}
+{%<ltrim> endraw <rtrim>%}
 ]], {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
           body = i(0, 'body'),
         })),
         s({ trig = '.liquid', wordTrig = false }, lfmt([[
-{%- liquid
+{%<ltrim> liquid
     <lines>
--%}
+<rtrim>%}
 ]], {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
           lines = i(0, 'assign foo = \"bar\"'),
         })),
-        s({ trig = '.render', wordTrig = false }, lfmt("{%- render '<snippet>' -%}", {
-          snippet = i(1, 'snippet'),
+        s({ trig = '.render', wordTrig = false }, lfmt("{%<ltrim> render '<snippet>' <rtrim>%}", {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          snippet = i(3, 'snippet'),
         })),
-        s({ trig = '.include', wordTrig = false }, lfmt("{%- include '<snippet>' -%}", {
-          snippet = i(1, 'snippet'),
+        s({ trig = '.include', wordTrig = false }, lfmt("{%<ltrim> include '<snippet>' <rtrim>%}", {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          snippet = i(3, 'snippet'),
         })),
-        s({ trig = '.section', wordTrig = false }, lfmt("{%- section '<name>' -%}", {
-          name = i(1, 'name'),
+        s({ trig = '.section', wordTrig = false }, lfmt("{%<ltrim> section '<name>' <rtrim>%}", {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          name = i(3, 'name'),
         })),
-        s({ trig = '.sections', wordTrig = false }, lfmt("{%- sections '<name>' -%}", {
-          name = i(1, 'name'),
+        s({ trig = '.sections', wordTrig = false }, lfmt("{%<ltrim> sections '<name>' <rtrim>%}", {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          name = i(3, 'name'),
         })),
-        s({ trig = '.layout', wordTrig = false }, lfmt("{%- layout '<name>' -%}", {
-          name = i(1, 'name'),
+        s({ trig = '.layout', wordTrig = false }, lfmt("{%<ltrim> layout '<name>' <rtrim>%}", {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          name = i(3, 'name'),
         })),
         s({ trig = '.style', wordTrig = false }, lfmt([[
-{%- style -%}
+{%<ltrim> style <rtrim>%}
     <body>
-{%- endstyle -%}
+{%<ltrim> endstyle <rtrim>%}
 ]], {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
           body = i(0, 'body'),
         })),
         s({ trig = '.stylesheet', wordTrig = false }, lfmt([[
-{%- stylesheet -%}
+{%<ltrim> stylesheet <rtrim>%}
     <body>
-{%- endstylesheet -%}
+{%<ltrim> endstylesheet <rtrim>%}
 ]], {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
           body = i(0, 'body'),
         })),
         s({ trig = '.javascript', wordTrig = false }, lfmt([[
-{%- javascript -%}
+{%<ltrim> javascript <rtrim>%}
     <body>
-{%- endjavascript -%}
+{%<ltrim> endjavascript <rtrim>%}
 ]], {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
           body = i(0, 'body'),
         })),
         s({ trig = '.form', wordTrig = false }, lfmt([[
-{%- form '<type>', <object> -%}
+{%<ltrim> form '<type>', <object> <rtrim>%}
     <body>
-{%- endform -%}
+{%<ltrim> endform <rtrim>%}
 ]], {
-          type = i(1, 'form_type'),
-          object = i(2, 'object'),
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          type = i(3, 'form_type'),
+          object = i(4, 'object'),
           body = i(0, 'body'),
         })),
         s({ trig = '.paginate', wordTrig = false }, lfmt([[
-{%- paginate <collection> by <size> -%}
+{%<ltrim> paginate <collection> by <size> <rtrim>%}
     <body>
-{%- endpaginate -%}
+{%<ltrim> endpaginate <rtrim>%}
 ]], {
-          collection = i(1, 'collection'),
-          size = i(2, '20'),
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          collection = i(3, 'collection'),
+          size = i(4, '20'),
           body = i(0, 'body'),
         })),
-        s({ trig = '.content_for', wordTrig = false }, lfmt("{%- content_for '<name>' -%}", {
-          name = i(1, 'name'),
+        s({ trig = '.content_for', wordTrig = false }, lfmt("{%<ltrim> content_for '<name>' <rtrim>%}", {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
+          name = i(3, 'name'),
         })),
         s({ trig = '.doc', wordTrig = false }, lfmt([[
-{%- doc -%}
+{%<ltrim> doc <rtrim>%}
     <body>
-{%- enddoc -%}
+{%<ltrim> enddoc <rtrim>%}
 ]], {
+          ltrim = c(1, { t '', t '-' }),
+          rtrim = c(2, { t '', t '-' }),
           body = i(0, 'details'),
         })),
       })
