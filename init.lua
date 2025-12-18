@@ -690,8 +690,15 @@ require('lazy').setup({
   {
     'numToStr/Comment.nvim',
     config = function()
+      local ts_pre_hook = require('ts_context_commentstring.integrations.comment_nvim').create_pre_hook()
       require('Comment').setup {
-        pre_hook = require('ts_context_commentstring.integrations.comment_nvim').create_pre_hook(),
+        pre_hook = function(ctx)
+          local ft = vim.api.nvim_get_option_value('filetype', { buf = ctx.bufnr })
+          if ft == 'liquid' then
+            return '{% comment %}\n%s\n{% endcomment %}'
+          end
+          return ts_pre_hook(ctx)
+        end,
       }
     end,
   },

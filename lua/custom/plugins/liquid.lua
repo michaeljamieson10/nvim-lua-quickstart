@@ -37,7 +37,7 @@ return {
 
           -- Align comment operators with the required Liquid block form
           -- For block wraps (e.g., Visual mode), place opening/closing on their own lines
-          vim.bo[event.buf].commentstring = '{%- comment -%}\n%s\n{%- endcomment -%}'
+          vim.bo[event.buf].commentstring = '{% comment %}\n%s\n{% endcomment %}'
 
           -- Preserve readable spacing while avoiding useless trailing blanks
           vim.api.nvim_create_autocmd('BufWritePre', {
