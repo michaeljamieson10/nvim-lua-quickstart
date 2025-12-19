@@ -8,7 +8,7 @@ local defaults = {
   env_file_root = nil,
   output = {
     buffer_name = 'Bruno Output',
-    width = 80,
+    width = 0.50,
   },
   cli = {
     cmd = 'bru',
