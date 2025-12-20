@@ -776,6 +776,10 @@ require('lazy').setup({
         pattern = 'http',
         callback = function(event)
           vim.b[event.buf]._rest_nvim_count = vim.b[event.buf]._rest_nvim_count or 1
+          vim.keymap.set('n', 'rr', '<cmd>Rest run<cr>', {
+            buffer = event.buf,
+            desc = 'REST Run request',
+          })
         end,
         group = vim.api.nvim_create_augroup('rest_nvim_buffer_defaults', { clear = true }),
       })
