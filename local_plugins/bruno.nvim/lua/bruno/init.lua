@@ -328,9 +328,16 @@ local function write_output(bufnr, opts, raw_output)
       local result = data.results and data.results[1] or nil
       if result then
         local response = result.response or {}
+        local response_body = nil
+        for _, value in ipairs { response.data, response.body, response.text, response.raw, response.content } do
+          if value ~= nil and value ~= vim.NIL then
+            response_body = value
+            break
+          end
+        end
         local sections = {
           list = { 'response', 'headers', 'meta', 'all' },
-          response = formatter.pretty_json_lines(response.data),
+          response = formatter.pretty_json_lines(response_body),
           headers = formatter.pretty_json_lines(response.headers),
           meta = formatter.pretty_json_lines {
             status = response.status,
