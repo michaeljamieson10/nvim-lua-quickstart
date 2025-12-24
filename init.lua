@@ -270,6 +270,18 @@ vim.keymap.set('n', '<leader>yd', function()
   end
   vim.fn.setreg('+', vim.fn.fnamemodify(path, ':h'))
 end, { desc = 'Yank file’s directory to clipboard' })
+vim.keymap.set('n', '<leader>yf', function()
+  local path = normalized_buf_path()
+  if path == '' then
+    return
+  end
+  local filename = vim.fn.fnamemodify(path, ':t')
+  if filename == '' then
+    return
+  end
+  vim.fn.setreg('+', filename)
+  print('Copied filename: ' .. filename)
+end, { desc = 'Yank filename to clipboard' })
 vim.keymap.set('n', '<leader>jc', function()
   vim.cmd 'split | terminal curl -s https://jsonplaceholder.typicode.com/posts/1'
 end, { desc = 'Fetch JSON Placeholder Post' })
