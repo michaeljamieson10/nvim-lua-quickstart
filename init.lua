@@ -178,6 +178,7 @@ vim.opt.foldlevelstart = 99
 --  See `:help hlsearch`
 vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, { desc = 'Go to implementation' })
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+vim.keymap.set('n', '<leader>rr', '<cmd>edit<CR>', { desc = 'Reload file' })
 vim.keymap.set('n', '<leader>lg', function()
   vim.cmd 'tabnew | term lazygit'
   vim.cmd 'startinsert'
