@@ -229,6 +229,17 @@ vim.keymap.set('n', '<leader>ml', ':.DB ' .. db_url .. '<CR>', {
   silent = true,
   desc = 'Run SQL line',
 })
+
+-- Buffer management commands under <leader>w
+vim.keymap.set('n', '<leader>wh', '<cmd>hide<CR>', { desc = '[W]indow: [H]ide buffer (keep in memory)' })
+vim.keymap.set('n', '<leader>we', '<cmd>edit<CR>', { desc = '[W]indow: [E]dit/reload buffer' })
+vim.keymap.set('n', '<leader>wd', '<cmd>bdelete<CR>', { desc = '[W]indow: [D]elete buffer' })
+vim.keymap.set('n', '<leader>ww', '<cmd>write<CR>', { desc = '[W]indow: [W]rite/save buffer' })
+vim.keymap.set('n', '<leader>wn', '<cmd>bnext<CR>', { desc = '[W]indow: [N]ext buffer' })
+vim.keymap.set('n', '<leader>wp', '<cmd>bprevious<CR>', { desc = '[W]indow: [P]revious buffer' })
+vim.keymap.set('n', '<leader>wc', '<cmd>close<CR>', { desc = '[W]indow: [C]lose window' })
+vim.keymap.set('n', '<leader>wq', '<cmd>wq<CR>', { desc = '[W]indow: Write and [Q]uit buffer' })
+
 -- vim.keymap.set('n', '<leader>cc', '<cmd>ClaudeCode<CR>', { desc = 'Toggle Claude Code' })
 -- Somewhere else in your config (e.g. when sending a prompt), store it manually:
 vim.keymap.set('n', '<leader>cx', function()
