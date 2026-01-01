@@ -804,6 +804,10 @@ require('lazy').setup({
             buffer = event.buf,
             desc = 'REST Run request',
           })
+          vim.keymap.set('n', '<leader>rr', '<cmd>Rest run<cr>', {
+            buffer = event.buf,
+            desc = 'REST Run request',
+          })
         end,
         group = vim.api.nvim_create_augroup('rest_nvim_buffer_defaults', { clear = true }),
       })
