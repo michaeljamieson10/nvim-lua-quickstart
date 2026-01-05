@@ -1,13 +1,3 @@
--- Helper function to apply baleia colors
-local function apply_baleia_colors()
-  vim.schedule(function()
-    if vim.g.baleia then
-      -- Clear any existing highlights first
-      vim.g.baleia.once(vim.api.nvim_get_current_buf())
-    end
-  end)
-end
-
 vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
   pattern = '*.log',
   callback = function()
@@ -20,26 +10,22 @@ vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
   end,
 })
 
--- Apply colors whenever buffer is read (including reloads)
-vim.api.nvim_create_autocmd('BufWinEnter', {
-  pattern = '*.log',
-  callback = function()
-    apply_baleia_colors()
-  end,
-})
-
--- Reapply colors after external file changes (auto-reload)
-vim.api.nvim_create_autocmd('FileChangedShellPost', {
-  pattern = '*.log',
-  callback = function()
-    apply_baleia_colors()
-  end,
-})
-
--- Check for file changes periodically
-vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
+-- Check for file changes periodically and trigger reload
+vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI', 'FocusGained' }, {
   pattern = '*.log',
   callback = function()
     vim.cmd('checktime')
+  end,
+})
+
+-- Reapply baleia colors after any buffer read/reload
+vim.api.nvim_create_autocmd({ 'BufReadPost', 'FileChangedShellPost' }, {
+  pattern = '*.log',
+  callback = function()
+    vim.schedule(function()
+      if vim.g.baleia then
+        vim.g.baleia.once(vim.api.nvim_get_current_buf())
+      end
+    end)
   end,
 })
