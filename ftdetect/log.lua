@@ -10,16 +10,40 @@ vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
   end,
 })
 
--- Check for file changes periodically and trigger reload
-vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI', 'FocusGained' }, {
+-- Suppress the reload prompt and reload automatically
+vim.api.nvim_create_autocmd('FileChangedShell', {
+  pattern = '*.log',
+  callback = function()
+    -- Auto-reload: tell Vim to load the file
+    vim.v.fcs_choice = 'reload'
+  end,
+})
+
+-- Check for file changes on these events
+vim.api.nvim_create_autocmd({ 'CursorHold', 'FocusGained', 'BufEnter' }, {
   pattern = '*.log',
   callback = function()
     vim.cmd('checktime')
   end,
 })
 
--- Reapply baleia colors after any buffer read/reload
-vim.api.nvim_create_autocmd({ 'BufReadPost', 'FileChangedShellPost' }, {
+-- Auto-scroll to bottom and reapply colors after reload
+vim.api.nvim_create_autocmd('FileChangedShellPost', {
+  pattern = '*.log',
+  callback = function()
+    -- Scroll to bottom
+    vim.cmd('normal! G')
+    -- Reapply syntax colors
+    vim.schedule(function()
+      if vim.g.baleia then
+        vim.g.baleia.once(vim.api.nvim_get_current_buf())
+      end
+    end)
+  end,
+})
+
+-- Apply colors on initial read
+vim.api.nvim_create_autocmd('BufReadPost', {
   pattern = '*.log',
   callback = function()
     vim.schedule(function()
