@@ -2,14 +2,14 @@ return {
   {
     'norcalli/nvim-colorizer.lua',
     config = function()
-      require('colorizer').setup()
+      require('colorizer').setup { 'log' }
     end,
   },
   {
     'm00qek/baleia.nvim',
     version = '*',
     config = function()
-      vim.g.baleia = require('baleia').setup({})
+      vim.g.baleia = require('baleia').setup {}
 
       -- Create command for manual colorization
       vim.api.nvim_create_user_command('BaleiaColorize', function()
