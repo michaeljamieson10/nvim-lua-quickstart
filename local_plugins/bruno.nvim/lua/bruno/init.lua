@@ -161,8 +161,20 @@ local function render_sections(bufnr, status, sections, view_index)
   local status_label = status and status.code ~= nil and tostring(status.code) or 'none'
   tab_line = tab_line .. ('   (%s)'):format(status_label)
 
+  -- Trim leading empty lines from view
+  local trimmed_view = {}
+  local found_content = false
+  for _, line in ipairs(view or {}) do
+    if not found_content and line ~= '' then
+      found_content = true
+    end
+    if found_content then
+      table.insert(trimmed_view, line)
+    end
+  end
+
   local out = { tab_line, '' }
-  vim.list_extend(out, view or {})
+  vim.list_extend(out, trimmed_view)
   vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, out)
   apply_header(bufnr, tab_line, tab_positions, status, view_name:gsub('^%l', string.upper))
   apply_section_highlights(bufnr, out, 0)
@@ -177,8 +189,20 @@ local function with_header(bufnr, status, lines)
     header = 'response: none'
   end
 
+  -- Trim leading empty lines from lines
+  local trimmed_lines = {}
+  local found_content = false
+  for _, line in ipairs(lines or {}) do
+    if not found_content and line ~= '' then
+      found_content = true
+    end
+    if found_content then
+      table.insert(trimmed_lines, line)
+    end
+  end
+
   local out = { header, ('env: %s'):format(env), '' }
-  vim.list_extend(out, lines or {})
+  vim.list_extend(out, trimmed_lines)
   vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, out)
   apply_header(bufnr, header, status)
   apply_section_highlights(bufnr, out)
