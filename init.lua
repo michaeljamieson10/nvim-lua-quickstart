@@ -1438,6 +1438,8 @@ require('lazy').setup({
           { name = 'path' },
         },
       }
+
+      require('custom.liquid_completion').setup()
     end,
   },
 

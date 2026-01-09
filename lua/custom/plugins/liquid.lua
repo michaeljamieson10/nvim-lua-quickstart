@@ -21,7 +21,26 @@ return {
         table.insert(opts.ensure_installed, 'liquid')
       end
 
+      opts.highlight = opts.highlight or {}
+      if type(opts.highlight.disable) == 'table' then
+        if not vim.tbl_contains(opts.highlight.disable, 'liquid') then
+          table.insert(opts.highlight.disable, 'liquid')
+        end
+      elseif opts.highlight.disable == nil then
+        opts.highlight.disable = { 'liquid' }
+      end
+
       local liquid_group = vim.api.nvim_create_augroup('liquid-style-guide', { clear = true })
+      local function set_liquid_highlights()
+        vim.api.nvim_set_hl(0, '@keyword.operator.liquid', { link = 'Keyword' })
+      end
+
+      set_liquid_highlights()
+      vim.api.nvim_create_autocmd('ColorScheme', {
+        group = liquid_group,
+        desc = 'Ensure Liquid keyword operators stay visible',
+        callback = set_liquid_highlights,
+      })
       vim.api.nvim_create_autocmd('FileType', {
         group = liquid_group,
         pattern = 'liquid',
