@@ -46,6 +46,46 @@ local function pretty_json_str(s, indent)
   return table.concat(out)
 end
 
+function M.pretty_json_lines(value)
+  if value == nil or value == vim.NIL then
+    return { 'null' }
+  end
+
+  if type(value) == 'string' then
+    local trimmed = vim.trim(value)
+    local ok, decoded = pcall(vim.json.decode, trimmed)
+    if ok then
+      if type(decoded) == 'table' then
+        local pretty = pretty_json_str(vim.json.encode(decoded))
+        return vim.split(pretty, '\n', { trimempty = true })
+      end
+
+      if type(decoded) == 'string' then
+        local inner = decoded
+        local inner_trimmed = vim.trim(inner)
+        local first = inner_trimmed:sub(1, 1)
+        if first == '{' or first == '[' then
+          local ok_inner, inner_decoded = pcall(vim.json.decode, inner_trimmed)
+          if ok_inner and type(inner_decoded) == 'table' then
+            local pretty = pretty_json_str(vim.json.encode(inner_decoded))
+            return vim.split(pretty, '\n', { trimempty = true })
+          end
+        end
+
+        return vim.split(inner, '\n', { plain = true })
+      end
+
+      local pretty = pretty_json_str(vim.json.encode(decoded))
+      return vim.split(pretty, '\n', { trimempty = true })
+    end
+
+    return vim.split(value, '\n', { plain = true })
+  end
+
+  local pretty = pretty_json_str(vim.json.encode(value))
+  return vim.split(pretty, '\n', { trimempty = true })
+end
+
 function M.format_bruno_output(raw_output)
   local ok, data = pcall(vim.json.decode, raw_output)
   if not ok or not data or not data.results or #data.results == 0 then
@@ -77,25 +117,13 @@ function M.format_bruno_output(raw_output)
   if is_not_nil(response.data) then
     table.insert(formatted, 'RESPONSE DATA:')
     table.insert(formatted, '```json')
-
-    local data_content = is_json_null(response.data) and 'null' or pretty_json_str(vim.json.encode(response.data))
-    for _, line in ipairs(vim.split(data_content, '\n', { trimempty = true })) do
+    for _, line in ipairs(M.pretty_json_lines(response.data)) do
       table.insert(formatted, line)
     end
-
     table.insert(formatted, '```')
   end
 
   return formatted
-end
-
-function M.pretty_json_lines(value)
-  local encoded = 'null'
-  if value ~= nil and value ~= vim.NIL then
-    encoded = vim.json.encode(value)
-  end
-  local pretty = pretty_json_str(encoded)
-  return vim.split(pretty, '\n', { trimempty = true })
 end
 
 return M
