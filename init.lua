@@ -380,6 +380,14 @@ vim.api.nvim_create_autocmd('FileType', {
   end,
 })
 
+-- Recognize Fastfile as Ruby for syntax highlighting
+vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
+  pattern = { 'Fastfile', 'Appfile', 'Matchfile', 'Pluginfile' },
+  callback = function()
+    vim.bo.filetype = 'ruby'
+  end,
+})
+
 -- [[ Configure and install plugins ]]
 --
 --  To check the current status of your plugins, run
@@ -1469,7 +1477,7 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'python', 'query', 'vim', 'vimdoc', 'http', 'graphql' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'python', 'query', 'vim', 'vimdoc', 'http', 'graphql', 'ruby' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       ignore_install = { 'csv' },
