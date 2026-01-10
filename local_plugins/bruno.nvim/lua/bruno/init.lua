@@ -166,6 +166,22 @@ local function render_sections(bufnr, status, sections, view_index)
   local status_label = status and status.code ~= nil and tostring(status.code) or 'none'
   tab_line = tab_line .. ('   (%s)'):format(status_label)
 
+  local winid = vim.fn.bufwinid(bufnr)
+  if winid ~= -1 then
+    local width = vim.api.nvim_win_get_width(winid)
+    local content_width = #tab_line
+    if width > content_width then
+      local pad = math.floor((width - content_width) / 2)
+      if pad > 0 then
+        tab_line = string.rep(' ', pad) .. tab_line
+        for _, pos in ipairs(tab_positions) do
+          pos.start_col = pos.start_col + pad
+          pos.end_col = pos.end_col + pad
+        end
+      end
+    end
+  end
+
   -- Trim leading empty lines from view
   local trimmed_view = {}
   local found_content = false
