@@ -102,6 +102,15 @@ return {
       local function trim(text)
         return (text:gsub('^%s+', ''):gsub('%s+$', ''))
       end
+      local function escape_liquid_string(value)
+        return (value:gsub('\\', '\\\\'):gsub('"', '\\"'))
+      end
+      local function liquid_log_location()
+        local path = vim.api.nvim_buf_get_name(0)
+        local display = path ~= '' and vim.fn.fnamemodify(path, ':~:.') or 'unknown'
+        local row = vim.api.nvim_win_get_cursor(0)[1]
+        return escape_liquid_string(string.format('[liquid-log %s:%d]', display, row))
+      end
 
       local function liquid_log_value()
         local ok, clip = pcall(vim.fn.getreg, '+')
@@ -119,7 +128,7 @@ return {
           clip = trim(inner)
         end
 
-        inner = clip:match('^([%s%S]-)%s*|%s*stringifyObj%s*$')
+        inner = clip:match('^([%s%S]-)%s*|%s*stringifyObj[%s%S]*$')
         if inner then
           clip = trim(inner)
         end
@@ -368,8 +377,9 @@ return {
           rtrim = c(2, { t '', t '-' }),
           body = i(0, 'details'),
         })),
-        s({ trig = '.log', wordTrig = false }, lfmt('{{ <value> | stringifyObj }}', {
+        s({ trig = '.log', wordTrig = false }, lfmt('{{ <value> | stringifyObj | prepend: "<location> " }}', {
           value = f(liquid_log_value, {}),
+          location = f(liquid_log_location, {}),
         })),
       })
     end,

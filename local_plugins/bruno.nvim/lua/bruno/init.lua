@@ -820,7 +820,7 @@ function M.run_last()
     return
   end
 
-  run_request(last_file, { mode = 'popup', width = 0.95, height = 0.90 })
+  run_request(last_file, { mode = 'popup', width = 0.98, height = 0.94 })
 end
 
 function M.setup(user_opts)

@@ -270,7 +270,11 @@ local function expand_liquid_log()
       return
     end
 
-    local replacement = '{{ value | stringifyObj }}'
+    local path = vim.api.nvim_buf_get_name(0)
+    local display = path ~= '' and vim.fn.fnamemodify(path, ':~:.') or 'unknown'
+    local location = string.format('[liquid-log %s:%d]', display, row)
+    location = location:gsub('\\', '\\\\'):gsub('"', '\\"')
+    local replacement = string.format('{{ value | stringifyObj | prepend: "%s " }}', location)
     local before = line:sub(1, start_col)
     local after = line:sub(col + 1)
     vim.api.nvim_set_current_line(before .. replacement .. after)
