@@ -34,7 +34,7 @@ return {
       local function set_liquid_highlights()
         vim.api.nvim_set_hl(0, '@keyword.operator.liquid', { link = 'Keyword' })
         -- Custom declarations from liquid-utils get a different tint
-        vim.api.nvim_set_hl(0, 'liquidCustomDeclaration', { link = 'Type' })
+        vim.api.nvim_set_hl(0, 'liquidCustomDeclaration', { link = 'Function' })
       end
 
       set_liquid_highlights()
