@@ -339,7 +339,12 @@ return {
         })),
         s({ trig = '.log', wordTrig = false }, lfmt('{{ <value> | stringifyObj }}', {
           value = f(function()
-            return vim.fn.getreg('+')
+            local ok, clip = pcall(vim.fn.getreg, '+')
+            if ok and clip and clip ~= '' then
+              -- Trim whitespace and return clipboard content
+              return clip:match('^%s*(.-)%s*$')
+            end
+            return 'value'
           end, {}),
         })),
       })
