@@ -33,6 +33,8 @@ return {
       local liquid_group = vim.api.nvim_create_augroup('liquid-style-guide', { clear = true })
       local function set_liquid_highlights()
         vim.api.nvim_set_hl(0, '@keyword.operator.liquid', { link = 'Keyword' })
+        -- Custom declarations from liquid-utils get a different tint
+        vim.api.nvim_set_hl(0, 'liquidCustomDeclaration', { link = 'Type' })
       end
 
       set_liquid_highlights()
@@ -57,6 +59,20 @@ return {
           -- Align comment operators with the required Liquid block form
           -- For block wraps (e.g., Visual mode), place opening/closing on their own lines
           vim.bo[event.buf].commentstring = '{% comment %}\n%s\n{% endcomment %}'
+
+          -- Configure autopairs for Liquid to ensure { closes with }
+          local ok, autopairs = pcall(require, 'nvim-autopairs')
+          if ok then
+            local Rule = require 'nvim-autopairs.rule'
+            -- Add a rule to close single { with }
+            autopairs.add_rules({
+              Rule('{', '}'):with_pair(function(pair_opts)
+                -- Only pair if not followed by { or %
+                local next_char = pair_opts.line:sub(pair_opts.col, pair_opts.col)
+                return next_char ~= '{' and next_char ~= '%'
+              end),
+            })
+          end
 
           -- Preserve readable spacing while avoiding useless trailing blanks
           vim.api.nvim_create_autocmd('BufWritePre', {
@@ -100,6 +116,14 @@ return {
           ltrim = c(1, { t '', t '-' }),
           rtrim = c(2, { t '', t '-' }),
           name = i(3, 'var_name'),
+          body = i(0, 'body'),
+        })),
+        s({ trig = '.captureJson', wordTrig = false }, lfmt([[
+{%- captureJson <name> %}
+    <body>
+    {%- endcapture %}
+]], {
+          name = i(1, 'var_name'),
           body = i(0, 'body'),
         })),
         s({ trig = '.comment', wordTrig = false }, lfmt([[
@@ -313,6 +337,9 @@ return {
           ltrim = c(1, { t '', t '-' }),
           rtrim = c(2, { t '', t '-' }),
           body = i(0, 'details'),
+        })),
+        s({ trig = '.log', wordTrig = false }, lfmt('{{ <value> | stringifyObj }}', {
+          value = i(1, 'value'),
         })),
       })
     end,

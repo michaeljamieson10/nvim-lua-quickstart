@@ -18,7 +18,8 @@ syn keyword liquidFilter sortObjectsByProperty sort_natural splitObjectByKey str
 syn keyword liquidFilter timeZoneConvert timeZoneConvertFromFormat timeZoneConverttoUTC toPascalCase toUpperElseEmptyString contained
 syn keyword liquidFilter translationErrorBlockParsing updateKeyPairInObjArray updateTimeStamp zerofill contained
 
-syn keyword liquidKeyword assertPresent captureJson ensureArray entityLookup newArray newGuid newObject relationshipLookup contained
+" Custom declaration tags from liquid-utils (different tint from control flow)
+syn keyword liquidCustomDeclaration assertPresent captureJson ensureArray entityLookup newArray newGuid newObject relationshipLookup contained
 
 " Keep the full comment block (including delimiters) in Comment highlight.
 syn clear liquidComment
