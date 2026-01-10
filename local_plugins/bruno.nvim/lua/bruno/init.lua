@@ -32,12 +32,17 @@ local function load_persisted_state()
   if type(decoded.current_env_file) == 'string' then
     state.current_env_file = decoded.current_env_file
   end
+  if type(decoded.last_bru_file) == 'string' and decoded.last_bru_file ~= '' then
+    state.last_bru_file = decoded.last_bru_file
+    vim.g.last_bru_file = decoded.last_bru_file
+  end
 end
 
 local function persist_state()
   local payload = {
     current_env = state.current_env,
     current_env_file = state.current_env_file,
+    last_bru_file = state.last_bru_file,
   }
   local ok, encoded = pcall(vim.json.encode, payload)
   if not ok then
@@ -209,11 +214,16 @@ local function with_header(bufnr, status, lines)
 end
 
 local function get_last_bru_file()
-  return vim.g.last_bru_file
+  return state.last_bru_file or vim.g.last_bru_file
 end
 
 local function set_last_bru_file(path)
+  if not path or path == '' then
+    return
+  end
+  state.last_bru_file = path
   vim.g.last_bru_file = path
+  persist_state()
 end
 
 local function get_valid_collections(opts)
@@ -225,7 +235,6 @@ end
 local function get_current_bru_file()
   local current_file = vim.fn.expand '%:p'
   if vim.fn.fnamemodify(current_file, ':e') == 'bru' then
-    set_last_bru_file(current_file)
     return current_file
   end
 
@@ -235,6 +244,14 @@ local function get_current_bru_file()
   end
 
   vim.notify('Current file is not a .bru file and no valid last .bru file found', vim.log.levels.WARN, { title = 'bruno.nvim' })
+  return nil
+end
+
+local function get_cached_bru_file()
+  local last_bru = get_last_bru_file()
+  if last_bru and vim.fn.filereadable(last_bru) == 1 then
+    return last_bru
+  end
   return nil
 end
 
@@ -427,8 +444,9 @@ local function find_environments_dir()
   local search_dir = vim.fn.expand '%:p:h'
   local env_dir = vim.fn.finddir('environments', search_dir .. ';')
 
-  if env_dir == '' and get_last_bru_file() then
-    search_dir = vim.fn.fnamemodify(get_last_bru_file(), ':p:h')
+  local last_bru = get_cached_bru_file()
+  if env_dir == '' and last_bru then
+    search_dir = vim.fn.fnamemodify(last_bru, ':p:h')
     env_dir = vim.fn.finddir('environments', search_dir .. ';')
   end
 
@@ -641,12 +659,25 @@ function M.env()
   end)
 end
 
-function M.run()
+local function resolve_output(opts, output_override)
+  if not output_override then
+    return opts.output
+  end
+  local base = vim.deepcopy(opts.output or {})
+  return vim.tbl_deep_extend('force', base, output_override)
+end
+
+local function run_request(current_file, output_override)
   local opts = M.opts
-  local current_file = get_current_bru_file()
   if not current_file then
     return
   end
+  if vim.fn.filereadable(current_file) ~= 1 then
+    vim.notify('Bruno request is not readable: ' .. current_file, vim.log.levels.WARN, { title = 'bruno.nvim' })
+    return
+  end
+
+  set_last_bru_file(current_file)
 
   local bruno_root = vim.fn.findfile('bruno.json', vim.fn.fnamemodify(current_file, ':p:h') .. ';')
   if bruno_root == '' then
@@ -692,7 +723,8 @@ function M.run()
     vim.list_extend(args, { '--env-file', state.current_env_file })
   end
 
-  local bufnr = sidebar.get_or_create(opts.output.buffer_name, opts.output.width)
+  local output = resolve_output(opts, output_override)
+  local bufnr = sidebar.get_or_create(output)
   vim.api.nvim_set_option_value('filetype', 'text', { buf = bufnr })
   vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { 'Running Bruno request...' })
   if not vim.b[bufnr].bruno_section_keys then
@@ -770,6 +802,27 @@ function M.run()
   end)
 end
 
+function M.run()
+  local current_file = vim.fn.expand '%:p'
+  if current_file ~= '' and vim.fn.fnamemodify(current_file, ':e') == 'bru' then
+    run_request(current_file, { mode = 'split' })
+    return
+  end
+
+  M.run_last()
+end
+
+function M.run_last()
+  load_persisted_state()
+  local last_file = get_cached_bru_file()
+  if not last_file then
+    vim.notify('No cached Bruno request found. Run a .bru file first.', vim.log.levels.WARN, { title = 'bruno.nvim' })
+    return
+  end
+
+  run_request(last_file, { mode = 'popup', width = 0.95, height = 0.90 })
+end
+
 function M.setup(user_opts)
   M.opts = config.apply(user_opts)
   state.last_raw_output = nil
@@ -784,6 +837,7 @@ function M.setup(user_opts)
   })
 
   vim.api.nvim_create_user_command('BrunoRun', M.run, {})
+  vim.api.nvim_create_user_command('BrunoRunLast', M.run_last, {})
   vim.api.nvim_create_user_command('BrunoEnv', M.env, {})
   vim.api.nvim_create_user_command('BrunoEnvSet', function(cmd)
     M.set_env(cmd.args)

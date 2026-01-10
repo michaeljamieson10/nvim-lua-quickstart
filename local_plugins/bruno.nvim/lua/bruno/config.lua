@@ -9,6 +9,10 @@ local defaults = {
   output = {
     buffer_name = 'Bruno Output',
     width = 0.50,
+    height = 0.60,
+    mode = 'split',
+    border = 'rounded',
+    title = 'Bruno Output',
   },
   cli = {
     cmd = 'bru',
