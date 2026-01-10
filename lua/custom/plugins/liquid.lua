@@ -99,8 +99,6 @@ return {
       local t = ls.text_node
       local c = ls.choice_node
       local f = ls.function_node
-      local d = ls.dynamic_node
-      local sn = ls.snippet_node
       local function trim(text)
         return (text:gsub('^%s+', ''):gsub('%s+$', ''))
       end
@@ -370,14 +368,9 @@ return {
           rtrim = c(2, { t '', t '-' }),
           body = i(0, 'details'),
         })),
-        s(
-          { trig = '.log', wordTrig = false },
-          fmt('{{ {} | stringifyObj }}', {
-            d(1, function()
-              return sn(nil, { i(1, liquid_log_value()) })
-            end, {}),
-          })
-        ),
+        s({ trig = '.log', wordTrig = false }, lfmt('{{ <value> | stringifyObj }}', {
+          value = f(liquid_log_value, {}),
+        })),
       })
     end,
   },
