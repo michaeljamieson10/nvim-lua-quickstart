@@ -33,8 +33,6 @@ return {
       local liquid_group = vim.api.nvim_create_augroup('liquid-style-guide', { clear = true })
       local function set_liquid_highlights()
         vim.api.nvim_set_hl(0, '@keyword.operator.liquid', { link = 'Keyword' })
-        -- Custom declarations from liquid-utils get a different tint
-        vim.api.nvim_set_hl(0, 'liquidCustomDeclaration', { link = 'Function' })
       end
 
       set_liquid_highlights()
