@@ -240,18 +240,45 @@ vim.keymap.set('n', '<leader>wp', '<cmd>bprevious<CR>', { desc = '[W]indow: [P]r
 vim.keymap.set('n', '<leader>wc', '<cmd>close<CR>', { desc = '[W]indow: [C]lose window' })
 vim.keymap.set('n', '<leader>wq', '<cmd>wq<CR>', { desc = '[W]indow: Write and [Q]uit buffer' })
 
--- vim.keymap.set('n', '<leader>cc', '<cmd>ClaudeCode<CR>', { desc = 'Toggle Claude Code' })
--- Somewhere else in your config (e.g. when sending a prompt), store it manually:
-vim.keymap.set('n', '<leader>cx', function()
-  local path = vim.fn.expand '%:p'
+local function expand_liquid_log()
+  local ok, luasnip = pcall(require, 'luasnip')
+  if not ok then
+    local ok_lazy, lazy = pcall(require, 'lazy')
+    if ok_lazy then
+      lazy.load { plugins = { 'LuaSnip' } }
+      ok, luasnip = pcall(require, 'luasnip')
+    end
+  end
 
-  vim.cmd 'ClaudeCode'
+  local mode = vim.api.nvim_get_mode().mode
+  local keys = mode:sub(1, 1) == 'i' and '.log' or 'i.log'
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(keys, true, false, true), 'n', false)
 
-  vim.defer_fn(function()
-    local message = 'Custom target file:\n\n' .. path .. '\n'
-    vim.api.nvim_chan_send(vim.b.terminal_job_id, message)
-  end, 100)
-end, { desc = 'Send file path to Claude' })
+  vim.schedule(function()
+    if ok and luasnip.expand() then
+      return
+    end
+
+    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+    local line = vim.api.nvim_get_current_line()
+    local trigger = '.log'
+    local start_col = col - #trigger
+    if start_col < 0 then
+      return
+    end
+    if line:sub(start_col + 1, col) ~= trigger then
+      return
+    end
+
+    local replacement = '{{ value | stringifyObj }}'
+    local before = line:sub(1, start_col)
+    local after = line:sub(col + 1)
+    vim.api.nvim_set_current_line(before .. replacement .. after)
+    vim.api.nvim_win_set_cursor(0, { row, start_col + 3 })
+  end)
+end
+
+vim.keymap.set({ 'n', 'i' }, '<leader>cc', expand_liquid_log, { desc = 'Insert Liquid log' })
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
@@ -605,15 +632,6 @@ require('lazy').setup({
   {
     'tpope/vim-obsession', -- Session management plugin
     lazy = false, -- Load the plugin on startup
-  },
-  {
-    'greggh/claude-code.nvim',
-    dependencies = {
-      'nvim-lua/plenary.nvim', -- Required for git operations
-    },
-    config = function()
-      require('claude-code').setup()
-    end,
   },
   {
     'windwp/nvim-ts-autotag',
