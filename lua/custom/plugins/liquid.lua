@@ -98,6 +98,7 @@ return {
       local i = ls.insert_node
       local t = ls.text_node
       local c = ls.choice_node
+      local f = ls.function_node
 
       ls.add_snippets('liquid', {
         s({ trig = '.assign', wordTrig = false }, lfmt('{%<ltrim> assign <name> = <value> <rtrim>%}', {
@@ -337,7 +338,9 @@ return {
           body = i(0, 'details'),
         })),
         s({ trig = '.log', wordTrig = false }, lfmt('{{ <value> | stringifyObj }}', {
-          value = i(1, 'value'),
+          value = f(function()
+            return vim.fn.getreg('+')
+          end, {}),
         })),
       })
     end,
