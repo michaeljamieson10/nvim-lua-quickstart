@@ -99,6 +99,37 @@ return {
       local t = ls.text_node
       local c = ls.choice_node
       local f = ls.function_node
+      local function trim(text)
+        return (text:gsub('^%s+', ''):gsub('%s+$', ''))
+      end
+
+      local function liquid_log_value()
+        local ok, clip = pcall(vim.fn.getreg, '+')
+        if not ok or type(clip) ~= 'string' or clip == '' then
+          return 'value'
+        end
+
+        clip = trim(clip)
+        if clip == '' then
+          return 'value'
+        end
+
+        local inner = clip:match('^{{%-?%s*([%s%S]-)%s*%-?}}$')
+        if inner then
+          clip = trim(inner)
+        end
+
+        inner = clip:match('^([%s%S]-)%s*|%s*stringifyObj%s*$')
+        if inner then
+          clip = trim(inner)
+        end
+
+        if clip == '' then
+          return 'value'
+        end
+
+        return clip
+      end
 
       ls.add_snippets('liquid', {
         s({ trig = '.assign', wordTrig = false }, lfmt('{%<ltrim> assign <name> = <value> <rtrim>%}', {
@@ -338,14 +369,7 @@ return {
           body = i(0, 'details'),
         })),
         s({ trig = '.log', wordTrig = false }, lfmt('{{ <value> | stringifyObj }}', {
-          value = f(function()
-            local ok, clip = pcall(vim.fn.getreg, '+')
-            if ok and clip and clip ~= '' then
-              -- Trim whitespace and return clipboard content
-              return clip:match('^%s*(.-)%s*$')
-            end
-            return 'value'
-          end, {}),
+          value = f(liquid_log_value, {}),
         })),
       })
     end,
