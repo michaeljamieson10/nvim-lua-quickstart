@@ -151,7 +151,7 @@ return {
         s({ trig = '.captureJson', wordTrig = false }, lfmt([[
 {%- captureJson <name> %}
     <body>
-    {%- endcapture %}
+{%- endcapture %}
 ]], {
           name = i(1, 'var_name'),
           body = i(0, 'body'),
