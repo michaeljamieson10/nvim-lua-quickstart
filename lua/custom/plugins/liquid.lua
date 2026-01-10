@@ -368,9 +368,12 @@ return {
           rtrim = c(2, { t '', t '-' }),
           body = i(0, 'details'),
         })),
-        s({ trig = '.log', wordTrig = false }, lfmt('{{ <value> | stringifyObj }}', {
-          value = f(liquid_log_value, {}),
-        })),
+        s(
+          { trig = '.log', wordTrig = false },
+          fmt('{{ {} | stringifyObj }}', {
+            i(1, liquid_log_value()),
+          })
+        ),
       })
     end,
   },
