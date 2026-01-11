@@ -249,10 +249,44 @@ local function expand_liquid_log()
       ok, luasnip = pcall(require, 'luasnip')
     end
   end
+  local function trim(text)
+    return (text:gsub('^%s+', ''):gsub('%s+$', ''))
+  end
+  local function normalize_log_value(text)
+    local clip = trim(text or '')
+    if clip == '' then
+      return 'value'
+    end
 
-  local mode = vim.api.nvim_get_mode().mode
-  local keys = mode:sub(1, 1) == 'i' and '.log' or 'i.log'
-  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(keys, true, false, true), 'n', false)
+    local inner = clip:match('^{{%-?%s*([%s%S]-)%s*%-?}}$')
+    if inner then
+      clip = trim(inner)
+    end
+
+    inner = clip:match('^([%s%S]-)%s*|%s*stringifyObj[%s%S]*$')
+    if inner then
+      clip = trim(inner)
+    end
+
+    if clip == '' then
+      return 'value'
+    end
+
+    return clip
+  end
+  local function guess_log_value()
+    local ok_clip, clip = pcall(vim.fn.getreg, '+')
+    if not ok_clip or type(clip) ~= 'string' then
+      return 'value'
+    end
+    return normalize_log_value(clip)
+  end
+  local function escape_liquid_string(value)
+    return (value:gsub('\\', '\\\\'):gsub('"', '\\"'))
+  end
+
+  local keys = vim.api.nvim_replace_termcodes('<Esc>o.log', true, false, true)
+  vim.api.nvim_feedkeys(keys, 'n', false)
 
   vim.schedule(function()
     if ok and luasnip.expand() then
@@ -270,11 +304,12 @@ local function expand_liquid_log()
       return
     end
 
+    local value = guess_log_value()
     local path = vim.api.nvim_buf_get_name(0)
-    local display = path ~= '' and vim.fn.fnamemodify(path, ':~:.') or 'unknown'
-    local location = string.format('[liquid-log %s:%d]', display, row)
-    location = location:gsub('\\', '\\\\'):gsub('"', '\\"')
-    local replacement = string.format('{{ value | stringifyObj | prepend: "%s " }}', location)
+    local display = path ~= '' and vim.fn.fnamemodify(path, ':t:r') or 'unknown'
+    local location = string.format('[liquid-log %s:%d %s]', display, row, value)
+    location = escape_liquid_string(location)
+    local replacement = string.format('{{- %s | stringifyObj | prepend: "%s " | append: "\\n" -}}', value, location)
     local before = line:sub(1, start_col)
     local after = line:sub(col + 1)
     vim.api.nvim_set_current_line(before .. replacement .. after)

@@ -144,6 +144,25 @@ local function apply_section_highlights(bufnr, lines, start_line)
   end
 end
 
+local function trim_liquid_log_gaps(lines)
+  local out = {}
+  local skip_blanks = false
+  for _, line in ipairs(lines or {}) do
+    if line:match('^%s*%[liquid%-log ') then
+      skip_blanks = true
+      table.insert(out, line)
+    elseif line:match('^%s*$') then
+      if not skip_blanks then
+        table.insert(out, line)
+      end
+    else
+      skip_blanks = false
+      table.insert(out, line)
+    end
+  end
+  return out
+end
+
 local function render_sections(bufnr, status, sections, view_index)
   local view = sections.all
   local view_name = 'all'
@@ -394,7 +413,7 @@ local function write_output(bufnr, opts, raw_output)
         end
         local sections = {
           list = { 'response', 'headers', 'meta', 'all' },
-          response = formatter.pretty_json_lines(response_body),
+          response = trim_liquid_log_gaps(formatter.pretty_json_lines(response_body)),
           headers = formatter.pretty_json_lines(response.headers),
           meta = formatter.pretty_json_lines {
             status = response.status,

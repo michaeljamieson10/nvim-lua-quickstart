@@ -99,26 +99,13 @@ return {
       local t = ls.text_node
       local c = ls.choice_node
       local f = ls.function_node
+      local d = ls.dynamic_node
+      local sn = ls.snippet_node
       local function trim(text)
         return (text:gsub('^%s+', ''):gsub('%s+$', ''))
       end
-      local function escape_liquid_string(value)
-        return (value:gsub('\\', '\\\\'):gsub('"', '\\"'))
-      end
-      local function liquid_log_location()
-        local path = vim.api.nvim_buf_get_name(0)
-        local display = path ~= '' and vim.fn.fnamemodify(path, ':~:.') or 'unknown'
-        local row = vim.api.nvim_win_get_cursor(0)[1]
-        return escape_liquid_string(string.format('[liquid-log %s:%d]', display, row))
-      end
-
-      local function liquid_log_value()
-        local ok, clip = pcall(vim.fn.getreg, '+')
-        if not ok or type(clip) ~= 'string' or clip == '' then
-          return 'value'
-        end
-
-        clip = trim(clip)
+      local function normalize_log_value(text)
+        local clip = trim(text or '')
         if clip == '' then
           return 'value'
         end
@@ -138,6 +125,25 @@ return {
         end
 
         return clip
+      end
+      local function escape_liquid_string(value)
+        return (value:gsub('\\', '\\\\'):gsub('"', '\\"'))
+      end
+      local function liquid_log_location(args)
+        local value = normalize_log_value(args and args[1] and args[1][1] or '')
+        local path = vim.api.nvim_buf_get_name(0)
+        local display = path ~= '' and vim.fn.fnamemodify(path, ':t:r') or 'unknown'
+        local row = vim.api.nvim_win_get_cursor(0)[1]
+        return escape_liquid_string(string.format('[liquid-log %s:%d %s]', display, row, value))
+      end
+
+      local function liquid_log_value()
+        local ok, clip = pcall(vim.fn.getreg, '+')
+        if not ok or type(clip) ~= 'string' then
+          return 'value'
+        end
+
+        return normalize_log_value(clip)
       end
 
       ls.add_snippets('liquid', {
@@ -377,9 +383,11 @@ return {
           rtrim = c(2, { t '', t '-' }),
           body = i(0, 'details'),
         })),
-        s({ trig = '.log', wordTrig = false }, lfmt('{{ <value> | stringifyObj | prepend: "<location> " }}', {
-          value = f(liquid_log_value, {}),
-          location = f(liquid_log_location, {}),
+        s({ trig = '.log', wordTrig = false }, lfmt('{{- <value> | stringifyObj | prepend: "<location> " | append: "\\n" -}}', {
+          value = d(1, function()
+            return sn(nil, i(1, liquid_log_value()))
+          end),
+          location = f(liquid_log_location, { 1 }),
         })),
       })
     end,
