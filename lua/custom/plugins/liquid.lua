@@ -53,6 +53,26 @@ return {
           opt.softtabstop = 4
           opt.wrap = false
           opt.breakindent = true
+          -- Resolve translator Liquid includes with gf.
+          local translator_root = vim.fs.normalize(vim.fn.expand '~/Code/translator')
+          local buf_path = vim.api.nvim_buf_get_name(event.buf)
+          if buf_path ~= '' then
+            local normalized_buf = vim.fs.normalize(buf_path)
+            if normalized_buf:sub(1, #translator_root) == translator_root then
+              local function add_path_entry(value)
+                if not vim.tbl_contains(opt.path:get(), value) then
+                  opt.path:append(value)
+                end
+              end
+
+              add_path_entry(translator_root .. '/src/translations')
+              add_path_entry(translator_root .. '/src/state-IbrsCodeTables')
+              add_path_entry(translator_root .. '/src/translations/templates/channels/source')
+              add_path_entry(translator_root .. '/src/translations/templates/channels/destination')
+              add_path_entry(translator_root .. '/src/translations/templates/channels/codeTables')
+              opt.suffixesadd:append { '.liquid', '.json' }
+            end
+          end
 
           -- Align comment operators with the required Liquid block form
           -- For block wraps (e.g., Visual mode), place opening/closing on their own lines
