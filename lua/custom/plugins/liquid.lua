@@ -71,6 +71,16 @@ return {
               add_path_entry(translator_root .. '/src/translations/templates/channels/destination')
               add_path_entry(translator_root .. '/src/translations/templates/channels/codeTables')
               opt.suffixesadd:append { '.liquid', '.json' }
+
+              vim.keymap.set('n', 'gf', function()
+                local line = vim.api.nvim_get_current_line()
+                local include_path = line:match("include%s+['\"]([^'\"]+)['\"]")
+                if include_path and include_path ~= '' then
+                  vim.cmd('find ' .. vim.fn.fnameescape(include_path))
+                  return
+                end
+                vim.cmd 'normal! gf'
+              end, { buffer = event.buf, silent = true, desc = 'Go to Liquid include or file' })
             end
           end
 
