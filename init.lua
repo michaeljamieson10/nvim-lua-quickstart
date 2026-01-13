@@ -241,14 +241,6 @@ vim.keymap.set('n', '<leader>wc', '<cmd>close<CR>', { desc = '[W]indow: [C]lose 
 vim.keymap.set('n', '<leader>wq', '<cmd>wq<CR>', { desc = '[W]indow: Write and [Q]uit buffer' })
 
 local function expand_liquid_log()
-  local ok, luasnip = pcall(require, 'luasnip')
-  if not ok then
-    local ok_lazy, lazy = pcall(require, 'lazy')
-    if ok_lazy then
-      lazy.load { plugins = { 'LuaSnip' } }
-      ok, luasnip = pcall(require, 'luasnip')
-    end
-  end
   local function trim(text)
     return (text:gsub('^%s+', ''):gsub('%s+$', ''))
   end
@@ -284,37 +276,33 @@ local function expand_liquid_log()
   local function escape_liquid_string(value)
     return (value:gsub('\\', '\\\\'):gsub('"', '\\"'))
   end
-
-  local keys = vim.api.nvim_replace_termcodes('<Esc>o.log', true, false, true)
-  vim.api.nvim_feedkeys(keys, 'n', false)
-
-  vim.schedule(function()
-    if ok and luasnip.expand() then
+  local function save_if_possible()
+    local buf = vim.api.nvim_get_current_buf()
+    if vim.bo[buf].buftype ~= '' or vim.bo[buf].readonly or not vim.bo[buf].modifiable then
       return
     end
-
-    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-    local line = vim.api.nvim_get_current_line()
-    local trigger = '.log'
-    local start_col = col - #trigger
-    if start_col < 0 then
+    if vim.api.nvim_buf_get_name(buf) == '' then
       return
     end
-    if line:sub(start_col + 1, col) ~= trigger then
-      return
-    end
+    vim.cmd 'silent update'
+  end
 
-    local value = guess_log_value()
-    local path = vim.api.nvim_buf_get_name(0)
-    local display = path ~= '' and vim.fn.fnamemodify(path, ':t:r') or 'unknown'
-    local location = string.format('[liquid-log %s:%d %s]', display, row, value)
-    location = escape_liquid_string(location)
-    local replacement = string.format('{{- %s | stringifyObj | prepend: "%s " | append: "\\n" -}}', value, location)
-    local before = line:sub(1, start_col)
-    local after = line:sub(col + 1)
-    vim.api.nvim_set_current_line(before .. replacement .. after)
-    vim.api.nvim_win_set_cursor(0, { row, start_col + 3 })
-  end)
+  vim.cmd 'stopinsert'
+
+  local row = vim.api.nvim_win_get_cursor(0)[1]
+  local line = vim.api.nvim_get_current_line()
+  local indent = line:match('^%s*') or ''
+  local value = guess_log_value()
+  local path = vim.api.nvim_buf_get_name(0)
+  local display = path ~= '' and vim.fn.fnamemodify(path, ':t:r') or 'unknown'
+  local log_row = row + 1
+  local location = string.format('[liquid-log %s:%d %s]', display, log_row, value)
+  location = escape_liquid_string(location)
+  local replacement = string.format('{{- %s | stringifyObj | prepend: "%s " | append: "\\n" -}}', value, location)
+  local log_line = indent .. replacement
+  vim.api.nvim_buf_set_lines(0, row, row, true, { log_line })
+  vim.api.nvim_win_set_cursor(0, { log_row, #indent })
+  save_if_possible()
 end
 
 vim.keymap.set({ 'n', 'i' }, '<leader>cc', expand_liquid_log, { desc = 'Insert Liquid log' })
