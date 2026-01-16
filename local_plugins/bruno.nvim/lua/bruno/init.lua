@@ -339,7 +339,7 @@ local function make_temp_collection(root_dir, request_basename, request_contents
 end
 
 local function override_request_auth(contents, auth_mode)
-  if not auth_mode or auth_mode == '' then
+  if not auth_mode or auth_mode == '' or auth_mode == 'inherit' then
     return contents
   end
 
